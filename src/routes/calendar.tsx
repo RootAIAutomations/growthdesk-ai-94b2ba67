@@ -36,6 +36,23 @@ function CalendarPage() {
     },
   });
 
+  const saveToLibrary = useMutation({
+    mutationFn: async (p: ContentItem) => {
+      const content = p.instagram_caption || p.linkedin_post || p.blog_opener || p.topic || "";
+      const platform = p.instagram_caption ? "Instagram" : p.linkedin_post ? "LinkedIn" : "Blog";
+      const { error } = await supabase.from("content_library").insert({
+        content_calendar_id: p.id,
+        title: p.topic || format(parseISO(p.content_date), "MMM d"),
+        platform,
+        content,
+        tags: p.tags ?? [],
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => toast.success("Saved to library"),
+    onError: (e: any) => toast.error(e.message || "Could not save to library"),
+  });
+
   const create = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("content_calendar").insert(form);
