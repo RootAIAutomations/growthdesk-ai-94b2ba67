@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { GrowthDeskLogo } from "@/components/GrowthDeskLogo";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
@@ -40,10 +41,8 @@ function LoginPage() {
       {/* Left panel — branding */}
       <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-primary/90 via-primary to-primary/70 flex-col justify-between p-12 text-primary-foreground">
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-white/20 grid place-items-center">
-            <Sparkles className="size-5" />
-          </div>
-          <span className="text-xl font-semibold">GrowthDesk AI</span>
+          <GrowthDeskLogo size={40} />
+          <span className="text-xl font-bold">GrowthDesk AI</span>
         </div>
 
         <div className="space-y-6">
@@ -76,9 +75,7 @@ function LoginPage() {
         <div className="w-full max-w-md space-y-8">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 justify-center">
-            <div className="size-8 rounded-lg bg-primary grid place-items-center text-primary-foreground">
-              <Sparkles className="size-4" />
-            </div>
+            <GrowthDeskLogo size={32} />
             <span className="font-semibold text-lg">GrowthDesk AI</span>
           </div>
 
