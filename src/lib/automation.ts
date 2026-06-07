@@ -22,13 +22,10 @@ type OutreachResponse = {
 
 type ContentResponse = {
   posts?: Array<{
-    content_date: string;
-    day_number?: number | null;
-    topic?: string | null;
-    instagram_caption?: string | null;
-    linkedin_post?: string | null;
-    blog_opener?: string | null;
-    tags?: string[];
+    scheduled_date: string;
+    title: string;
+    platform?: string | null;
+    notes?: string | null;
     status?: string;
   }>;
 };
@@ -58,11 +55,11 @@ export async function requestOutreachDraft(payload: OutreachPayload): Promise<Ou
     return postWebhook<OutreachPayload, OutreachResponse>(webhookUrl, payload);
   }
 
-  const latestMessage = payload.messages[0]?.summary || payload.messages[0]?.message;
-  const nextFollowUp = payload.followUps.find((item) => item.status !== "Completed");
+  const latestMessage = payload.messages[0]?.content;
+  const nextFollowUp = payload.followUps.find((item) => !item.completed);
   const tags = payload.client.tags?.length ? ` Tags: ${payload.client.tags.join(", ")}.` : "";
   const context = latestMessage ? ` I noted: ${latestMessage}` : "";
-  const followUp = nextFollowUp ? ` I wanted to follow up on ${nextFollowUp.title.toLowerCase()}.` : "";
+  const followUp = nextFollowUp ? ` I wanted to follow up on ${nextFollowUp.task.toLowerCase()}.` : "";
 
   return {
     channel: "WhatsApp",
@@ -98,13 +95,10 @@ export async function requestContentPlan(payload: ContentPayload): Promise<Conte
       const date = new Date(baseDate);
       date.setUTCDate(date.getUTCDate() + index);
       return {
-        content_date: date.toISOString().slice(0, 10),
-        day_number: index + 1,
-        topic,
-        instagram_caption: `${topic}: a small system can save hours of scattered admin work.`,
-        linkedin_post: `For solo service providers, ${topic.toLowerCase()} is not about adding complexity. It is about creating a reliable rhythm that protects relationships and keeps work moving.`,
-        blog_opener: `Most service businesses do not need more tools. They need a clearer operating rhythm for ${topic.toLowerCase()}.`,
-        tags: ["service-business", "growthdesk", "workflow"],
+        scheduled_date: date.toISOString().slice(0, 10),
+        title: topic,
+        platform: "LinkedIn",
+        notes: `For solo service providers, ${topic.toLowerCase()} is not about adding complexity. It is about creating a reliable rhythm that protects relationships and keeps work moving.`,
         status: "Generated",
       };
     }),
