@@ -41,7 +41,7 @@ function LoginPage() {
       {/* Left panel — branding */}
       <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-primary/90 via-primary to-primary/70 flex-col justify-between p-12 text-primary-foreground">
         <div className="flex items-center gap-3">
-          <GrowthDeskLogo size={40} />
+          <GrowthDeskLogo size={40} onPrimary />
           <span className="text-xl font-bold">GrowthDesk AI</span>
         </div>
 
@@ -76,7 +76,7 @@ function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 justify-center">
             <GrowthDeskLogo size={32} />
-            <span className="font-semibold text-lg">GrowthDesk AI</span>
+            <span className="font-semibold text-lg text-foreground">GrowthDesk AI</span>
           </div>
 
           <div>
