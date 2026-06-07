@@ -53,7 +53,8 @@ function FollowUpsPage() {
   const [form, setForm] = useState({ client_id: "", title: "", due_date: format(new Date(), "yyyy-MM-dd"), priority: "Medium" });
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("follow_up_schedule").insert(form);
+      const user_id = await getUserId();
+      const { error } = await supabase.from("follow_up_schedule").insert({ ...form, user_id });
       if (error) throw error;
     },
     onSuccess: () => {

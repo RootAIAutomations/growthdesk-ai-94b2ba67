@@ -65,7 +65,8 @@ function ClientDetail() {
   const [msgDir, setMsgDir] = useState("Outbound");
   const addMessage = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("message_log").insert({ client_id: id, message: msgContent, summary: msgContent, message_type: msgChannel, direction: msgDir });
+      const user_id = await getUserId();
+      const { error } = await supabase.from("message_log").insert({ client_id: id, message: msgContent, summary: msgContent, message_type: msgChannel, direction: msgDir, user_id });
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["messages", id] }); setMsgContent(""); toast.success("Message logged"); },
@@ -75,7 +76,8 @@ function ClientDetail() {
   const [due, setDue] = useState(format(new Date(), "yyyy-MM-dd"));
   const addFollowUp = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("follow_up_schedule").insert({ client_id: id, title: task, due_date: due });
+      const user_id = await getUserId();
+      const { error } = await supabase.from("follow_up_schedule").insert({ client_id: id, title: task, due_date: due, user_id });
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["followups", id] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); setTask(""); toast.success("Follow-up added"); },
@@ -101,6 +103,7 @@ function ClientDetail() {
       const draftText = result.draft_text || result.edited_text;
       if (!draftText) throw new Error("Automation did not return a draft.");
 
+      const user_id = await getUserId();
       const { error } = await supabase.from("outreach_drafts").insert({
         client_id: id,
         channel: result.channel || "WhatsApp",
@@ -108,6 +111,7 @@ function ClientDetail() {
         edited_text: result.edited_text || null,
         status: result.status || "Draft",
         prompt_context: (result.prompt_context || null) as any,
+        user_id,
       });
       if (error) throw error;
     },

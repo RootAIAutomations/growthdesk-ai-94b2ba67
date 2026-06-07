@@ -54,12 +54,14 @@ function LibraryPage() {
 
   const create = useMutation({
     mutationFn: async () => {
+      const user_id = await getUserId();
       const { error } = await supabase.from("content_library").insert({
         title: form.title,
         platform: form.platform,
         content: form.content,
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
         source: "Manual",
+        user_id,
       });
       if (error) throw error;
     },

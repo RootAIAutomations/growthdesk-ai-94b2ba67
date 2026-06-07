@@ -40,7 +40,8 @@ function CalendarPage() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("content_calendar").insert(form);
+      const user_id = await getUserId();
+      const { error } = await supabase.from("content_calendar").insert({ ...form, user_id });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -60,6 +61,7 @@ function CalendarPage() {
         businessContext: getBusinessContext(),
       });
       if (!result.posts?.length) throw new Error("Automation did not return content posts.");
+      const user_id = await getUserId();
       const posts = result.posts.map((p) => ({
         content_date: p.content_date,
         day_number: p.day_number ?? null,
@@ -70,6 +72,7 @@ function CalendarPage() {
         video_script: (p as any).video_script ?? null,
         tags: p.tags ?? [],
         status: p.status ?? "Generated",
+        user_id,
       }));
       const { error } = await supabase.from("content_calendar").insert(posts);
       if (error) throw error;
@@ -84,6 +87,7 @@ function CalendarPage() {
 
   const saveToLibrary = useMutation({
     mutationFn: async ({ item, platform, content }: { item: ContentItem; platform: string; content: string }) => {
+      const user_id = await getUserId();
       const { error } = await supabase.from("content_library").insert({
         title: item.topic || "Content idea",
         platform,
@@ -91,6 +95,7 @@ function CalendarPage() {
         tags: item.tags ?? [],
         source: "Generated",
         content_calendar_id: item.id,
+        user_id,
       });
       if (error) throw error;
     },
