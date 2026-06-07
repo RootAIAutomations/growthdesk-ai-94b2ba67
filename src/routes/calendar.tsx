@@ -115,14 +115,18 @@ function CalendarPage() {
         businessContext: getBusinessContext(),
       });
       if (!result.image_url) throw new Error("No image URL returned");
-      const { error } = await supabase.from("content_calendar").update({ image_url: result.image_url } as any).eq("id", item.id);
+      const { error } = await supabase.from("content_calendar").update({ image_url: result.image_url }).eq("id", item.id);
       if (error) throw error;
       return result.image_url;
     },
     onSuccess: (imageUrl) => {
       qc.invalidateQueries({ queryKey: ["calendar"] });
-      // Update the selected item so Regenerate works immediately without closing the dialog
-      if (imageUrl) setSelected(prev => prev ? { ...prev, image_url: imageUrl } as any : prev);
+      if (imageUrl) {
+        setSelected(prev => {
+          if (!prev) return prev;
+          return { ...prev, image_url: imageUrl } as typeof prev;
+        });
+      }
       toast.success("Image generated");
     },
     onError: (e: any) => toast.error(e.message || "Could not generate image"),

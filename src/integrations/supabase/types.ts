@@ -74,6 +74,7 @@ export type Database = {
           generated_at: string | null
           generated_by: string | null
           id: string
+          image_url: string | null
           instagram_caption: string | null
           linkedin_post: string | null
           notes: string | null
@@ -94,6 +95,7 @@ export type Database = {
           generated_at?: string | null
           generated_by?: string | null
           id?: string
+          image_url?: string | null
           instagram_caption?: string | null
           linkedin_post?: string | null
           notes?: string | null
@@ -114,6 +116,7 @@ export type Database = {
           generated_at?: string | null
           generated_by?: string | null
           id?: string
+          image_url?: string | null
           instagram_caption?: string | null
           linkedin_post?: string | null
           notes?: string | null
