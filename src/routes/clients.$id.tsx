@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Sparkles, Copy, MessageCircle, Send, Plus, Mail, Phone, Briefcase } from "lucide-react";
+import { ArrowLeft, Sparkles, Copy, MessageCircle, Send, Plus, Mail, Phone, Briefcase, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { supabase, statusColor, type Client, type Message, type FollowUp, type Outreach } from "@/lib/db";
@@ -115,6 +115,19 @@ function ClientDetail() {
       toast.success("Outreach draft generated");
     },
     onError: (e: any) => toast.error(e.message || "Could not generate outreach draft"),
+  });
+
+  const deleteDraft = useMutation({
+    mutationFn: async (draftId: string) => {
+      const { error } = await supabase.from("outreach_drafts").delete().eq("id", draftId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["drafts", id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Draft deleted");
+    },
+    onError: (e: any) => toast.error(e.message || "Could not delete draft"),
   });
   const copyDraft = (text?: string) => {
     if (text) navigator.clipboard.writeText(text);
@@ -276,13 +289,24 @@ function ClientDetail() {
                       <span className="text-xs text-muted-foreground">{format(parseISO(d.generated_at), "MMM d, yyyy")}</span>
                     </div>
                     <div className="bg-muted/40 rounded-lg p-3 text-sm whitespace-pre-wrap mb-3 leading-relaxed">{d.edited_text || d.draft_text}</div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => copyDraft(d.edited_text || d.draft_text)}><Copy className="size-3.5" /> Copy</Button>
                       {d.channel === "WhatsApp" && (
                         <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-500/30 hover:bg-emerald-50" onClick={() => openWhatsApp(d.edited_text || d.draft_text)}>
                           <MessageCircle className="size-3.5" /> Open in WhatsApp
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/10"
+                        disabled={deleteDraft.isPending}
+                        onClick={() => {
+                          if (confirm("Delete this draft? This cannot be undone.")) deleteDraft.mutate(d.id);
+                        }}
+                      >
+                        <Trash2 className="size-3.5" /> Delete
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

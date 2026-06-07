@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, MessageSquareText, MessageCircle, Search } from "lucide-react";
+import { Copy, MessageSquareText, MessageCircle, Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
@@ -51,6 +51,19 @@ function OutreachPage() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["all-drafts"] }),
+  });
+
+  const deleteDraft = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("outreach_drafts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-drafts"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Draft deleted");
+    },
+    onError: (e: any) => toast.error(e.message || "Could not delete draft"),
   });
 
   const filtered = drafts.filter((d) => {
@@ -146,6 +159,17 @@ function OutreachPage() {
                     <MessageCircle className="size-3.5" /> Open in WhatsApp
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/10"
+                  disabled={deleteDraft.isPending}
+                  onClick={() => {
+                    if (confirm("Delete this draft? This cannot be undone.")) deleteDraft.mutate(d.id);
+                  }}
+                >
+                  <Trash2 className="size-3.5" /> Delete
+                </Button>
               </div>
             </CardContent>
           </Card>
