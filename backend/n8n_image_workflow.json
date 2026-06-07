@@ -21,7 +21,7 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $env.HF_API_KEY }}" },
+            { "name": "Authorization", "value": "Bearer PASTE_YOUR_HF_TOKEN_HERE" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
@@ -39,7 +39,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.cloudinary.com/v1_1/{{ $env.CLOUDINARY_CLOUD_NAME }}/image/upload",
+        "url": "https://api.cloudinary.com/v1_1/djwcvx8wx/image/upload",
         "sendBody": true,
         "contentType": "multipart-form-data",
         "bodyParameters": {
