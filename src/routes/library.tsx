@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Library as LibraryIcon, Copy, Search, Instagram, Linkedin, FileText, Globe } from "lucide-react";
+import { Plus, Library as LibraryIcon, Copy, Search, Instagram, Linkedin, FileText, Globe, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { supabase, type LibraryItem } from "@/lib/db";
@@ -38,7 +38,8 @@ const platformColor: Record<string, string> = {
 
 function LibraryPage() {
   const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [selected, setSelected] = useState<LibraryItem | null>(null);
   const [search, setSearch] = useState("");
   const [platformFilter, setPlatformFilter] = useState("All");
   const [form, setForm] = useState({ title: "", platform: "Instagram", content: "", tags: "" });
@@ -64,17 +65,33 @@ function LibraryPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["library"] });
-      setOpen(false);
+      setAddOpen(false);
       setForm({ title: "", platform: "Instagram", content: "", tags: "" });
       toast.success("Saved to library");
     },
     onError: (e: any) => toast.error(e.message || "Could not save"),
   });
 
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("content_library").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["library"] });
+      setSelected(null);
+      toast.success("Removed from library");
+    },
+  });
+
   const filtered = data.filter((it) => {
     const matchPlatform = platformFilter === "All" || it.platform === platformFilter;
     const q = search.toLowerCase();
-    const matchSearch = !q || it.title.toLowerCase().includes(q) || (it.content ?? "").toLowerCase().includes(q) || (it.tags ?? []).some((t) => t.toLowerCase().includes(q));
+    const matchSearch =
+      !q ||
+      it.title.toLowerCase().includes(q) ||
+      (it.content ?? "").toLowerCase().includes(q) ||
+      (it.tags ?? []).some((t) => t.toLowerCase().includes(q));
     return matchPlatform && matchSearch;
   });
 
@@ -84,14 +101,17 @@ function LibraryPage() {
         title="Content Library"
         description={`${data.length} saved item${data.length !== 1 ? "s" : ""}`}
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
               <Button><Plus className="size-4" /> Add item</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>Add to library</DialogTitle></DialogHeader>
               <div className="space-y-3">
-                <div><Label className="text-xs">Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Best follow-up template" /></div>
+                <div>
+                  <Label className="text-xs">Title</Label>
+                  <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Best follow-up template" />
+                </div>
                 <div>
                   <Label className="text-xs">Platform</Label>
                   <Select value={form.platform} onValueChange={(v) => setForm({ ...form, platform: v })}>
@@ -103,9 +123,19 @@ function LibraryPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div><Label className="text-xs">Content</Label><Textarea rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="Paste or write your content here..." /></div>
-                <div><Label className="text-xs">Tags (comma-separated)</Label><Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="e.g. outreach, templates, linkedin" /></div>
-                <div className="flex justify-end"><Button disabled={!form.title || !form.content || create.isPending} onClick={() => create.mutate()}>{create.isPending ? "Saving..." : "Save to library"}</Button></div>
+                <div>
+                  <Label className="text-xs">Content</Label>
+                  <Textarea rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="Paste or write your content here..." />
+                </div>
+                <div>
+                  <Label className="text-xs">Tags (comma-separated)</Label>
+                  <Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="e.g. outreach, templates, linkedin" />
+                </div>
+                <div className="flex justify-end">
+                  <Button disabled={!form.title || !form.content || create.isPending} onClick={() => create.mutate()}>
+                    {create.isPending ? "Saving..." : "Save to library"}
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -157,36 +187,51 @@ function LibraryPage() {
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((it) => (
-            <Card key={it.id} className="flex flex-col">
+            <Card
+              key={it.id}
+              className="flex flex-col cursor-pointer hover:shadow-md hover:border-primary/30 transition-all"
+              onClick={() => setSelected(it)}
+            >
               <CardContent className="p-4 flex flex-col flex-1">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="font-medium text-sm leading-snug">{it.title}</div>
                   {it.platform && (
-                    <Badge variant="outline" className={`text-xs shrink-0 flex items-center gap-1 ${platformColor[it.platform] ?? ""}`}>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs shrink-0 flex items-center gap-1 ${platformColor[it.platform] ?? ""}`}
+                    >
                       {platformIcon[it.platform]}
                       {it.platform}
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm whitespace-pre-wrap text-muted-foreground line-clamp-5 flex-1 mb-3 leading-relaxed">
+                <p className="text-sm text-muted-foreground line-clamp-4 flex-1 mb-3 leading-relaxed">
                   {it.content}
                 </p>
                 {(it.tags ?? []).length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {(it.tags ?? []).map((t) => (
-                      <Badge key={t} variant="outline" className="text-xs cursor-pointer hover:bg-accent" onClick={() => setSearch(t)}>{t}</Badge>
+                    {(it.tags ?? []).slice(0, 4).map((t) => (
+                      <Badge
+                        key={t}
+                        variant="outline"
+                        className="text-xs cursor-pointer hover:bg-accent"
+                        onClick={(e) => { e.stopPropagation(); setSearch(t); }}
+                      >
+                        {t}
+                      </Badge>
                     ))}
                   </div>
                 )}
-                <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center justify-between pt-2 border-t" onClick={(e) => e.stopPropagation()}>
                   <span className="text-xs text-muted-foreground">
-                    {it.source === "Generated" ? "AI Generated" : "Manual"} · {format(parseISO(it.created_at), "MMM d, yyyy")}
+                    {it.source === "Generated" ? "AI" : "Manual"} · {format(parseISO(it.created_at), "MMM d, yyyy")}
                   </span>
                   <Button
                     size="sm"
                     variant="outline"
                     className="h-7 text-xs"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       navigator.clipboard.writeText(it.content ?? "");
                       toast.success("Copied to clipboard");
                     }}
@@ -199,6 +244,62 @@ function LibraryPage() {
           ))}
         </div>
       )}
+
+      {/* Item detail dialog */}
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {selected && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="pr-8 flex items-center gap-2">
+                  {selected.title}
+                  {selected.platform && (
+                    <Badge variant="outline" className={`text-xs flex items-center gap-1 ${platformColor[selected.platform] ?? ""}`}>
+                      {platformIcon[selected.platform]}
+                      {selected.platform}
+                    </Badge>
+                  )}
+                </DialogTitle>
+                <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
+                  <span>{selected.source === "Generated" ? "AI Generated" : "Added manually"}</span>
+                  <span>·</span>
+                  <span>{format(parseISO(selected.created_at), "MMMM d, yyyy")}</span>
+                </div>
+              </DialogHeader>
+
+              <div className="bg-muted/40 rounded-lg p-4 text-sm whitespace-pre-wrap leading-relaxed my-2">
+                {selected.content}
+              </div>
+
+              {(selected.tags ?? []).length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {(selected.tags ?? []).map((t) => (
+                    <Badge key={t} variant="outline" className="text-xs">{t}</Badge>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(selected.content ?? "");
+                    toast.success("Copied to clipboard");
+                  }}
+                >
+                  <Copy className="size-4" /> Copy content
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => remove.mutate(selected.id)}
+                  disabled={remove.isPending}
+                >
+                  <Trash2 className="size-4" /> {remove.isPending ? "Removing..." : "Remove"}
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
