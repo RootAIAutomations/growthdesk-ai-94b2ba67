@@ -352,7 +352,7 @@ function ClientDetail() {
                     <div className="bg-muted/40 rounded-lg p-3 text-sm whitespace-pre-wrap mb-3 leading-relaxed">{d.edited_text || d.draft_text}</div>
                     <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => copyDraft(d.edited_text || d.draft_text)}><Copy className="size-3.5" /> Copy</Button>
-                      {client.email && (
+                      {client.email && d.channel === "Email" && (
                         <Button
                           size="sm"
                           variant="outline"
