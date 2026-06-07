@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { getUserId } from "@/lib/getUserId";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { PageHeader } from "@/components/AppLayout";
@@ -40,7 +41,8 @@ function ClientsPage() {
 
   const addMutation = useMutation({
     mutationFn: async (input: ClientInsert) => {
-      const { error } = await supabase.from("clients").insert(input);
+      const user_id = await getUserId();
+      const { error } = await supabase.from("clients").insert({ ...input, user_id });
       if (error) throw error;
     },
     onSuccess: () => {
