@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -135,21 +136,43 @@ function RootComponent() {
 }
 
 const PUBLIC_ROUTES = ["/login"];
+const ONBOARDING_ROUTE = "/onboarding";
 
 function AuthGuard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isPublic = PUBLIC_ROUTES.includes(pathname);
+  const isOnboarding = pathname === ONBOARDING_ROUTE;
 
   useEffect(() => {
     if (loading) return;
-    if (!user && !isPublic) {
+
+    if (!user) {
+      if (!isPublic) navigate({ to: "/login" });
+      return;
+    }
+
+    const meta = user.user_metadata || {};
+
+    // Block deleted accounts from re-logging in
+    if (meta.deleted_at) {
+      supabase.auth.signOut();
       navigate({ to: "/login" });
-    } else if (user && isPublic) {
+      return;
+    }
+
+    // Redirect to onboarding if not completed
+    if (!meta.onboarding_complete && !isOnboarding) {
+      navigate({ to: "/onboarding" });
+      return;
+    }
+
+    // Already authed + onboarding done — redirect away from login/onboarding
+    if (isPublic || (isOnboarding && meta.onboarding_complete)) {
       navigate({ to: "/" });
     }
-  }, [user, loading, isPublic, navigate]);
+  }, [user, loading, isPublic, isOnboarding, navigate]);
 
   if (loading) {
     return (
@@ -168,7 +191,7 @@ function AuthGuard() {
 
   if (!user && !isPublic) return null;
 
-  if (isPublic) {
+  if (isPublic || isOnboarding) {
     return <Outlet />;
   }
 

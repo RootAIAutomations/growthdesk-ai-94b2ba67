@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OutreachRouteImport } from './routes/outreach'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as FollowUpsRouteImport } from './routes/follow-ups'
@@ -27,6 +28,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const OutreachRoute = OutreachRouteImport.update({
   id: '/outreach',
   path: '/outreach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/outreach': typeof OutreachRoute
   '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/outreach': typeof OutreachRoute
   '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/outreach': typeof OutreachRoute
   '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/follow-ups'
     | '/library'
     | '/login'
+    | '/onboarding'
     | '/outreach'
     | '/settings'
     | '/clients/$id'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/follow-ups'
     | '/library'
     | '/login'
+    | '/onboarding'
     | '/outreach'
     | '/settings'
     | '/clients/$id'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/follow-ups'
     | '/library'
     | '/login'
+    | '/onboarding'
     | '/outreach'
     | '/settings'
     | '/clients/$id'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   FollowUpsRoute: typeof FollowUpsRoute
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   OutreachRoute: typeof OutreachRoute
   SettingsRoute: typeof SettingsRoute
   ClientsIdRoute: typeof ClientsIdRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/outreach'
       fullPath: '/outreach'
       preLoaderRoute: typeof OutreachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   FollowUpsRoute: FollowUpsRoute,
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   OutreachRoute: OutreachRoute,
   SettingsRoute: SettingsRoute,
   ClientsIdRoute: ClientsIdRoute,

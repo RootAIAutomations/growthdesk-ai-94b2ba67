@@ -70,7 +70,11 @@ function SettingsPage() {
     if (deleteConfirm !== "DELETE") return;
     setDeleting(true);
     try {
-      // Clear all user data first
+      // Mark account as deleted in user metadata — blocks re-login in AuthGuard
+      await supabase.auth.updateUser({
+        data: { deleted_at: new Date().toISOString() }
+      });
+      // Clear all user data
       await Promise.all([
         supabase.from("content_library").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
         supabase.from("content_calendar").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
@@ -81,7 +85,7 @@ function SettingsPage() {
       ]);
       await signOut();
       navigate({ to: "/login" });
-      toast.success("Account deleted");
+      toast.success("Your account has been deleted.");
     } catch {
       toast.error("Could not delete account. Please contact support.");
     } finally {

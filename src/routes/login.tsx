@@ -41,7 +41,13 @@ function LoginPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created! Check your email to confirm, or sign in if confirmation is disabled.");
+        // Auto sign in after signup and go to onboarding
+        const { error: signinError } = await supabase.auth.signInWithPassword({ email, password });
+        if (!signinError) {
+          navigate({ to: "/onboarding" });
+          return;
+        }
+        toast.success("Account created! Sign in to continue.");
         setMode("signin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
