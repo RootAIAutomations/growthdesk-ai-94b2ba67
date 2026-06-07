@@ -6,7 +6,9 @@
         "httpMethod": "POST",
         "path": "growthdesk-content",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "allowedOrigins": "*"
+        }
       },
       "id": "webhook-trigger",
       "name": "Webhook",
@@ -17,7 +19,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst weekStartDate = body.weekStartDate || new Date().toISOString().split('T')[0];\nconst businessContext = body.businessContext || 'A solo service provider business';\n\nconst prompt = `You are a content strategist for solo service providers and freelancers.\n\nBusiness context: ${businessContext}\nWeek starting: ${weekStartDate}\n\nGenerate a 7-day content plan for this business. For each day, create:\n1. A topic/theme relevant to solo service providers\n2. An Instagram caption (engaging, with 3-5 relevant hashtags, under 150 words)\n3. A LinkedIn post (professional, thought-leadership tone, 100-200 words)\n4. A blog opener paragraph (informative, hooks the reader, 60-80 words)\n\nReturn ONLY valid JSON in this exact format:\n{\n  \"posts\": [\n    {\n      \"content_date\": \"YYYY-MM-DD\",\n      \"day_number\": 1,\n      \"topic\": \"Topic title\",\n      \"instagram_caption\": \"Caption text with #hashtags\",\n      \"linkedin_post\": \"LinkedIn post text\",\n      \"blog_opener\": \"Blog opening paragraph\",\n      \"tags\": [\"tag1\", \"tag2\"],\n      \"status\": \"Generated\"\n    }\n  ]\n}\n\nGenerate all 7 days starting from ${weekStartDate}. Make each day's content unique and valuable.`;\n\nreturn [{ json: { prompt, weekStartDate } }];"
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst weekStartDate = body.weekStartDate || new Date().toISOString().split('T')[0];\nconst businessContext = body.businessContext || 'A solo service provider business';\n\nconst prompt = `You are a content strategist creating a 7-day content plan.\n\nBusiness context:\n${businessContext}\n\nWeek starting: ${weekStartDate}\n\nCreate 7 days of content that speaks directly to this specific business and its audience. Each day should have a distinct angle — do not repeat themes. Make the content feel human, specific, and useful — not generic.\n\nFor each day generate:\n1. A topic that is relevant to this business specifically\n2. An Instagram caption (engaging, with 3-5 hashtags specific to this industry, under 150 words)\n3. A LinkedIn post (thought leadership tone, 150-200 words, no hashtags, professional)\n4. A blog opener paragraph (hooks the reader, 70-90 words, informative)\n5. A short-form video script (30-60 seconds when spoken aloud, conversational, for Reels/TikTok/Shorts)\n\nReturn ONLY valid JSON in this exact format:\n{\n  \"posts\": [\n    {\n      \"content_date\": \"YYYY-MM-DD\",\n      \"day_number\": 1,\n      \"topic\": \"Topic title\",\n      \"instagram_caption\": \"Caption with #hashtags\",\n      \"linkedin_post\": \"LinkedIn post text\",\n      \"blog_opener\": \"Blog opening paragraph\",\n      \"video_script\": \"Hook line. [pause] Body. [pause] Call to action.\",\n      \"tags\": [\"tag1\", \"tag2\"],\n      \"status\": \"Generated\"\n    }\n  ]\n}\n\nGenerate all 7 days starting from ${weekStartDate}. Each day must be unique in angle and format.`;\n\nreturn [{ json: { prompt, weekStartDate } }];"
       },
       "id": "prepare-prompt",
       "name": "Prepare Prompt",
@@ -38,7 +40,7 @@
         },
         "options": {
           "temperature": 0.8,
-          "maxTokens": 3000,
+          "maxTokens": 4000,
           "responseFormat": "json_object"
         }
       },

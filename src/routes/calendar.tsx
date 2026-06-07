@@ -16,6 +16,7 @@ import { format, parseISO, startOfWeek } from "date-fns";
 import { toast } from "sonner";
 import { supabase, type ContentItem } from "@/lib/db";
 import { requestContentPlan } from "@/lib/automation";
+import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/calendar")({
   head: () => ({ meta: [{ title: "Content Calendar — GrowthDesk AI" }] }),
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/calendar")({
 
 function CalendarPage() {
   const qc = useQueryClient();
+  const { getBusinessContext } = useProfile();
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [selected, setSelected] = useState<ContentItem | null>(null);
   const [form, setForm] = useState({ topic: "", content_date: format(new Date(), "yyyy-MM-dd"), status: "Generated", instagram_caption: "", linkedin_post: "", blog_opener: "" });
@@ -55,7 +57,7 @@ function CalendarPage() {
       const weekStartDate = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
       const result = await requestContentPlan({
         weekStartDate,
-        businessContext: "GrowthDesk AI helps solo service providers manage clients, follow-ups, outreach drafts, and content planning.",
+        businessContext: getBusinessContext(),
       });
       if (!result.posts?.length) throw new Error("Automation did not return content posts.");
       const posts = result.posts.map((p) => ({ ...p, topic: p.topic ?? "Content idea" }));

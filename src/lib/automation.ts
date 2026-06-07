@@ -4,6 +4,7 @@ type OutreachPayload = {
   client: Client;
   messages: Message[];
   followUps: FollowUp[];
+  businessContext?: string;
 };
 
 type ContentPayload = {

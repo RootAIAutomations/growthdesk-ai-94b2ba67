@@ -47,12 +47,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background">
       <aside className="hidden md:flex w-64 flex-col bg-sidebar border-r border-sidebar-border">
-        <div className="h-16 flex items-center gap-2 px-6 border-b border-sidebar-border">
+        <Link to="/" className="h-16 flex items-center gap-2 px-6 border-b border-sidebar-border hover:opacity-80 transition-opacity">
           <div className="size-8 rounded-lg bg-primary grid place-items-center text-primary-foreground">
             <Sparkles className="size-4" />
           </div>
           <div className="font-semibold text-sidebar-foreground">GrowthDesk AI</div>
-        </div>
+        </Link>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {nav.map((item) => {
             const Icon = item.icon;
@@ -107,10 +107,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden h-14 flex items-center gap-2 px-4 border-b bg-card">
-          <div className="size-7 rounded-md bg-primary grid place-items-center text-primary-foreground">
-            <Sparkles className="size-3.5" />
-          </div>
-          <div className="font-semibold">GrowthDesk AI</div>
+          <Link to="/" className="flex items-center gap-2">
+            <div className="size-7 rounded-md bg-primary grid place-items-center text-primary-foreground">
+              <Sparkles className="size-3.5" />
+            </div>
+            <div className="font-semibold">GrowthDesk AI</div>
+          </Link>
         </header>
         <nav className="md:hidden flex overflow-x-auto gap-1 px-3 py-2 border-b bg-card">
           {nav.map((item) => {

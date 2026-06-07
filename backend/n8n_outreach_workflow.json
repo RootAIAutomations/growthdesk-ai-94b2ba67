@@ -6,7 +6,9 @@
         "httpMethod": "POST",
         "path": "growthdesk-outreach",
         "responseMode": "responseNode",
-        "options": {}
+        "options": {
+          "allowedOrigins": "*"
+        }
       },
       "id": "webhook-trigger",
       "name": "Webhook",
@@ -17,7 +19,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst client = body.client || {};\nconst messages = body.messages || [];\nconst followUps = body.followUps || [];\n\nconst recentMessages = messages.slice(0, 5).map(m => `- [${m.direction}] ${m.message_type}: ${m.summary || m.message}`).join('\\n');\nconst pendingFollowUps = followUps.filter(f => f.status !== 'Completed').map(f => `- ${f.title} (due ${f.due_date})`).join('\\n');\n\nconst prompt = `You are an expert business communication assistant helping a solo service provider reach out to a client.\n\nClient details:\n- Name: ${client.name}\n- Business type: ${client.business_type || 'Not specified'}\n- Tags: ${(client.tags || []).join(', ') || 'None'}\n- Status: ${client.status}\n- Notes: ${client.notes || 'None'}\n- Last contacted: ${client.last_contact_date || 'Never'}\n\nRecent conversation history:\n${recentMessages || 'No previous conversations'}\n\nPending follow-ups:\n${pendingFollowUps || 'None'}\n\nWrite a warm, professional, and personalised WhatsApp message from the service provider to this client. The message should:\n1. Reference the client's specific business context and notes\n2. Be conversational and friendly (not salesy)\n3. Include a clear but gentle call-to-action\n4. Be under 150 words\n5. Feel human — not like a template\n\nReturn ONLY the message text, no subject lines or extra formatting.`;\n\nreturn [{ json: { prompt, client_name: client.name } }];"
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst client = body.client || {};\nconst messages = body.messages || [];\nconst followUps = body.followUps || [];\nconst businessContext = body.businessContext || 'A solo service provider';\n\nconst recentMessages = messages.slice(0, 5).map(m => `- [${m.direction}] ${m.message_type}: ${m.summary || m.message}`).join('\\n');\nconst pendingFollowUps = followUps.filter(f => f.status !== 'Completed').map(f => `- ${f.title} (due ${f.due_date})`).join('\\n');\n\nconst prompt = `You are writing a personalised outreach message on behalf of a service provider.\n\nAbout the sender's business:\n${businessContext}\n\nClient you are reaching out to:\n- Name: ${client.name}\n- Business type: ${client.business_type || 'Not specified'}\n- Tags: ${(client.tags || []).join(', ') || 'None'}\n- Status: ${client.status}\n- Notes: ${client.notes || 'None'}\n- Last contacted: ${client.last_contact_date || 'Not recently'}\n\nRecent conversation history:\n${recentMessages || 'No previous conversations'}\n\nPending follow-ups:\n${pendingFollowUps || 'None'}\n\nWrite a WhatsApp message from the sender to this client. The message must:\n1. Feel like it was written by a real person, not a template\n2. Reference something specific about this client (their notes, business type, or last conversation)\n3. Have a clear but soft call-to-action\n4. Be under 120 words\n5. Match the sender's business context — the language and offer should make sense for what they do\n\nReturn ONLY the message text. No subject line, no formatting, no quotation marks.`;\n\nreturn [{ json: { prompt, client_name: client.name } }];"
       },
       "id": "prepare-prompt",
       "name": "Prepare Prompt",
@@ -37,8 +39,8 @@
           ]
         },
         "options": {
-          "temperature": 0.7,
-          "maxTokens": 300
+          "temperature": 0.75,
+          "maxTokens": 350
         }
       },
       "id": "openai-call",

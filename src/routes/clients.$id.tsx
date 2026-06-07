@@ -15,6 +15,7 @@ import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { supabase, statusColor, type Client, type Message, type FollowUp, type Outreach } from "@/lib/db";
 import { requestOutreachDraft } from "@/lib/automation";
+import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/clients/$id")({
   head: () => ({ meta: [{ title: "Client — GrowthDesk AI" }] }),
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/clients/$id")({
 
 function ClientDetail() {
   const { id } = Route.useParams();
+  const { getBusinessContext } = useProfile();
   const qc = useQueryClient();
 
   const { data: client } = useQuery({
@@ -92,7 +94,7 @@ function ClientDetail() {
     mutationFn: async () => {
       if (!client) throw new Error("Client is still loading.");
 
-      const result = await requestOutreachDraft({ client, messages, followUps });
+      const result = await requestOutreachDraft({ client, messages, followUps, businessContext: getBusinessContext() });
 
       if (result.saved_draft_id) return;
 
