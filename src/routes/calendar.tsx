@@ -119,8 +119,10 @@ function CalendarPage() {
       if (error) throw error;
       return result.image_url;
     },
-    onSuccess: () => {
+    onSuccess: (imageUrl) => {
       qc.invalidateQueries({ queryKey: ["calendar"] });
+      // Update the selected item so Regenerate works immediately without closing the dialog
+      if (imageUrl) setSelected(prev => prev ? { ...prev, image_url: imageUrl } as any : prev);
       toast.success("Image generated");
     },
     onError: (e: any) => toast.error(e.message || "Could not generate image"),
