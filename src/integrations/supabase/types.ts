@@ -61,135 +61,88 @@ export type Database = {
       }
       content_calendar: {
         Row: {
-          blog_opener: string | null
-          content_date: string
           created_at: string
-          day_number: number | null
-          generated_at: string
-          generated_by: string | null
           id: string
-          instagram_caption: string | null
-          linkedin_post: string | null
+          notes: string | null
+          platform: string | null
+          scheduled_date: string
           status: string
-          tags: string[] | null
-          topic: string | null
-          updated_at: string
-          week_start_date: string | null
+          title: string
         }
         Insert: {
-          blog_opener?: string | null
-          content_date: string
           created_at?: string
-          day_number?: number | null
-          generated_at?: string
-          generated_by?: string | null
           id?: string
-          instagram_caption?: string | null
-          linkedin_post?: string | null
+          notes?: string | null
+          platform?: string | null
+          scheduled_date: string
           status?: string
-          tags?: string[] | null
-          topic?: string | null
-          updated_at?: string
-          week_start_date?: string | null
+          title: string
         }
         Update: {
-          blog_opener?: string | null
-          content_date?: string
           created_at?: string
-          day_number?: number | null
-          generated_at?: string
-          generated_by?: string | null
           id?: string
-          instagram_caption?: string | null
-          linkedin_post?: string | null
+          notes?: string | null
+          platform?: string | null
+          scheduled_date?: string
           status?: string
-          tags?: string[] | null
-          topic?: string | null
-          updated_at?: string
-          week_start_date?: string | null
+          title?: string
         }
         Relationships: []
       }
       content_library: {
         Row: {
-          content: string
-          content_calendar_id: string | null
+          body: string | null
+          content_type: string | null
           created_at: string
           id: string
-          platform: string
-          source: string | null
           tags: string[] | null
           title: string
-          updated_at: string
         }
         Insert: {
-          content: string
-          content_calendar_id?: string | null
+          body?: string | null
+          content_type?: string | null
           created_at?: string
           id?: string
-          platform: string
-          source?: string | null
           tags?: string[] | null
           title: string
-          updated_at?: string
         }
         Update: {
-          content?: string
-          content_calendar_id?: string | null
+          body?: string | null
+          content_type?: string | null
           created_at?: string
           id?: string
-          platform?: string
-          source?: string | null
           tags?: string[] | null
           title?: string
-          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "content_library_content_calendar_id_fkey"
-            columns: ["content_calendar_id"]
-            isOneToOne: false
-            referencedRelation: "content_calendar"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       follow_up_schedule: {
         Row: {
           client_id: string
+          completed: boolean
           completed_at: string | null
           created_at: string
           due_date: string
           id: string
-          notes: string | null
-          priority: string | null
-          status: string
-          title: string
-          updated_at: string
+          task: string
         }
         Insert: {
           client_id: string
+          completed?: boolean
           completed_at?: string | null
           created_at?: string
           due_date: string
           id?: string
-          notes?: string | null
-          priority?: string | null
-          status?: string
-          title: string
-          updated_at?: string
+          task: string
         }
         Update: {
           client_id?: string
+          completed?: boolean
           completed_at?: string | null
           created_at?: string
           due_date?: string
           id?: string
-          notes?: string | null
-          priority?: string | null
-          status?: string
-          title?: string
-          updated_at?: string
+          task?: string
         }
         Relationships: [
           {
@@ -203,40 +156,31 @@ export type Database = {
       }
       message_log: {
         Row: {
+          channel: string | null
           client_id: string
+          content: string
           created_at: string
-          details: string | null
           direction: string
           id: string
-          interaction_date: string
-          message: string | null
-          message_type: string
-          summary: string | null
-          updated_at: string
+          sent_at: string
         }
         Insert: {
+          channel?: string | null
           client_id: string
+          content: string
           created_at?: string
-          details?: string | null
           direction?: string
           id?: string
-          interaction_date?: string
-          message?: string | null
-          message_type?: string
-          summary?: string | null
-          updated_at?: string
+          sent_at?: string
         }
         Update: {
+          channel?: string | null
           client_id?: string
+          content?: string
           created_at?: string
-          details?: string | null
           direction?: string
           id?: string
-          interaction_date?: string
-          message?: string | null
-          message_type?: string
-          summary?: string | null
-          updated_at?: string
+          sent_at?: string
         }
         Relationships: [
           {
@@ -251,45 +195,27 @@ export type Database = {
       outreach_drafts: {
         Row: {
           channel: string
-          client_id: string
-          copied_at: string | null
+          client_id: string | null
+          content: string
           created_at: string
-          draft_text: string
-          edited_text: string | null
-          generated_at: string
-          generated_by: string | null
           id: string
-          prompt_context: Json
           status: string
-          updated_at: string
         }
         Insert: {
           channel?: string
-          client_id: string
-          copied_at?: string | null
+          client_id?: string | null
+          content: string
           created_at?: string
-          draft_text: string
-          edited_text?: string | null
-          generated_at?: string
-          generated_by?: string | null
           id?: string
-          prompt_context?: Json
           status?: string
-          updated_at?: string
         }
         Update: {
           channel?: string
-          client_id?: string
-          copied_at?: string | null
+          client_id?: string | null
+          content?: string
           created_at?: string
-          draft_text?: string
-          edited_text?: string | null
-          generated_at?: string
-          generated_by?: string | null
           id?: string
-          prompt_context?: Json
           status?: string
-          updated_at?: string
         }
         Relationships: [
           {
