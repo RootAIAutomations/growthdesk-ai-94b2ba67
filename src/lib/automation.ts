@@ -23,8 +23,8 @@ type OutreachResponse = {
 type ContentResponse = {
   posts?: Array<{
     content_date: string;
+    topic: string;
     day_number?: number | null;
-    topic?: string | null;
     instagram_caption?: string | null;
     linkedin_post?: string | null;
     blog_opener?: string | null;
