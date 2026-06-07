@@ -1,250 +1,154 @@
-# GrowthDesk AI
+# GrowthDesk AI — Service Business Hub
 
-## AI-Powered Service Business Hub
+> IIT Roorkee × MASAI — New Age Software Engineering | Capstone Project 04
 
-GrowthDesk AI is an AI-powered CRM and business management platform designed for solo service providers, freelancers, consultants, coaches, therapists, marketers, and small business owners.
+**GrowthDesk AI** is an AI-powered CRM and business management platform for solo service providers — freelancers, consultants, coaches, and SMB owners.
 
-The platform helps users manage client relationships, track conversations, generate personalised outreach messages, organise follow-ups, and create AI-generated content calendars from a single dashboard.
-
-This project is being developed as part of the IIT Roorkee – New Age Software Engineering (No-Code Track) Capstone Project.
+It solves the problem of managing clients, outreach, content, and follow-ups across 5 different apps by bringing everything into one intelligent workspace.
 
 ---
 
-## Problem Statement
+## 🔗 Live App
 
-Service-based businesses often manage clients, outreach, content creation, and follow-ups across multiple disconnected tools.
+**[Open GrowthDesk AI →](https://growthdesk-ai-94b2ba67.lovable.app)**
 
-This leads to:
-
-- Missed follow-ups
-- Inconsistent client communication
-- Poor lead management
-- Time spent switching between applications
-- Difficulty maintaining a content publishing schedule
-
-GrowthDesk AI centralises these activities into a single platform and uses AI to reduce repetitive administrative work.
+> No login required — open in incognito to test fresh.
 
 ---
 
-## Core Features
+## 🗂️ Repository Structure
 
-### Client Management
-
-- Add and manage clients
-- Store contact information
-- Organise client tags
-- Track status and engagement
-- Store business notes
-
-### Conversation History
-
-- Maintain communication records
-- Track client interactions
-- Record important discussion points
-- Build a historical client timeline
-
-### AI Outreach Drafts
-
-Generate personalised outreach messages using:
-
-- Client notes
-- Client tags
-- Business information
-- Previous interactions
-
-Generated drafts can be reviewed, edited, and copied before sending.
-
-### WhatsApp Draft Integration
-
-Users can open WhatsApp Web with a pre-filled message using:
-
-`wa.me` links
-
-No WhatsApp Business API is required.
-
-### Follow-Up Management
-
-- Follow-up due dates
-- Overdue reminders
-- Engagement tracking
-- Client attention dashboard
-
-### AI Content Calendar
-
-Generate weekly content drafts including:
-
-- Instagram captions
-- LinkedIn posts
-- Blog openers
-
-### Content Library
-
-Store and reuse successful content assets.
+```
+/
+├── frontend/          ← Frontend documentation (Lovable app lives at root)
+├── backend/           ← n8n AI workflow JSONs + integration guide
+├── supabase/
+│   └── migrations/    ← Database schema migrations
+├── src/               ← Application source code (Lovable/TanStack Start)
+│   ├── routes/        ← All pages
+│   └── lib/           ← Database + automation helpers
+└── README.md
+```
 
 ---
 
-## System Architecture
+## ✅ Core Features
 
-Lovable Frontend
-        │
-        ▼
-    Supabase
-(Database Layer)
-        │
-        ▼
-      n8n
-(AI Workflow Engine)
-        │
-        ▼
- OpenAI / LLM
+| Feature | Status |
+|---------|--------|
+| Client management (add, edit, tag, status) | ✅ Live |
+| Conversation history per client | ✅ Live |
+| Follow-up tracking (overdue / today / this week) | ✅ Live |
+| AI outreach draft generation | ✅ Live (n8n + fallback) |
+| WhatsApp Web pre-filled draft link | ✅ Live |
+| AI content calendar (7-day, 3 platforms) | ✅ Live (n8n + fallback) |
+| Content library (save, search, filter) | ✅ Live |
+| Dashboard with live stats | ✅ Live |
 
 ---
 
-## Project Workflow
+## 🏗️ System Architecture
 
-### Client Outreach Workflow
-
-Add Client + Notes
-        │
-        ▼
-     Supabase
-        │
-        ▼
- Generate Outreach Draft
-        │
-        ▼
-      n8n AI
-        │
-        ▼
- Save Draft
-        │
-        ▼
- Copy / WhatsApp Web
-
-
-### Weekly Content Workflow
-
-Generate Content Calendar
-        │
-        ▼
-      n8n AI
-        │
-        ▼
- Save Content
-        │
-        ▼
- Content Library
-
+```
+Lovable Frontend (TanStack Start + React)
+          │
+          ▼
+    Supabase (PostgreSQL)
+          │
+          ▼
+        n8n
+  (AI Workflow Engine)
+          │
+          ▼
+   OpenAI GPT-4o-mini
+```
 
 ---
 
-## Technology Stack
+## 🔄 Core Workflows
 
-### Frontend
+### Outreach Draft Workflow
+```
+Add Client + Notes → Supabase → Click "Generate Draft"
+→ n8n Webhook → OpenAI (personalised with client context)
+→ Draft saved → Copy / Open WhatsApp (wa.me prefilled)
+```
 
-- Lovable
-
-### Database
-
-- Supabase
-
-### AI Workflow Layer
-
-- n8n
-
-### AI Models
-
-- OpenAI
-
-### Version Control
-
-- GitHub
-
-### Deployment
-
-- Lovable Hosting
-- Supabase
+### Content Calendar Workflow
+```
+Click "Generate 7-day plan" → n8n Webhook → OpenAI
+→ 7 posts × 3 formats (Instagram, LinkedIn, Blog)
+→ Saved to Content Calendar → Save to Library
+```
 
 ---
 
-## Database Structure
+## 🛠️ Technology Stack
 
-### Clients
-
-Stores:
-
-- Contact information
-- Tags
-- Notes
-- Status
-- Follow-up dates
-
-### Message Log
-
-Stores:
-
-- Conversation history
-- Communication records
-
-### Outreach Drafts
-
-Stores:
-
-- AI-generated outreach messages
-
-### Content Calendar
-
-Stores:
-
-- Weekly content plans
-
-### Follow-Up Schedule
-
-Stores:
-
-- Follow-up reminders
-- Engagement tasks
-
-### Content Library
-
-Stores:
-
-- Reusable content assets
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Lovable (TanStack Start + React 19 + Tailwind CSS) |
+| Database | Supabase (PostgreSQL) |
+| AI Workflow | n8n |
+| AI Model | OpenAI GPT-4o-mini |
+| Version Control | GitHub |
+| Deployment | Lovable Hosting + Supabase |
 
 ---
 
-## Project Status
+## 🗄️ Database Schema
 
-**Current Phase:** Foundation & Architecture Setup
+| Table | Purpose |
+|-------|---------|
+| `clients` | Client records, tags, status, notes |
+| `message_log` | Conversation history per client |
+| `follow_up_schedule` | Follow-up tasks with due dates |
+| `outreach_drafts` | AI-generated outreach messages |
+| `content_calendar` | Weekly AI content plans |
+| `content_library` | Saved reusable content |
 
-### Planned Milestones
-
-1. Database Design
-2. Frontend Development
-3. AI Outreach Workflow
-4. Content Calendar Workflow
-5. Testing
-6. Deployment
-7. Final Presentation
-
----
-
-## Capstone Alignment
-
-This project is based on **Project 04 – Service Business Hub** and delivers the following required outcomes:
-
-- Client list with notes and tags
-- Conversation history
-- Follow-up reminders and due dates
-- AI-generated personalised outreach drafts
-- WhatsApp Web pre-filled draft links
-- AI-generated content calendar
-- Content library for reusable content
+Schema migrations: [`/supabase/migrations/`](./supabase/migrations/)
 
 ---
 
-## Author
+## ⚙️ Environment Variables
 
-**Vikram Hora**  
-IIT Roorkee x MASAI – New Age Software Engineering Capstone Project  
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+VITE_N8N_OUTREACH_WEBHOOK_URL=https://your-n8n/webhook/growthdesk-outreach
+VITE_N8N_CONTENT_WEBHOOK_URL=https://your-n8n/webhook/growthdesk-content
+```
+
+> The app works without n8n — it falls back to local templates automatically.
+
+---
+
+## 🤖 n8n Workflows
+
+Import-ready workflow files are in [`/backend/`](./backend/):
+
+- `n8n_outreach_workflow.json` — personalised outreach draft generator
+- `n8n_content_workflow.json` — 7-day content calendar generator
+
+See [`/backend/README.md`](./backend/README.md) for setup instructions.
+
+---
+
+## 🚀 Running Locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:8080`
+
+---
+
+## 👤 Author
+
+**Vikram Hora**
+IIT Roorkee × MASAI — New Age Software Engineering (No-Code Track)
+Capstone Project 04 — Service Business Hub
 2026

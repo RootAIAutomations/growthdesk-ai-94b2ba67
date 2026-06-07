@@ -1,0 +1,95 @@
+{
+  "name": "GrowthDesk AI — Outreach Draft Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "growthdesk-outreach",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "growthdesk-outreach"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst client = body.client || {};\nconst messages = body.messages || [];\nconst followUps = body.followUps || [];\n\nconst recentMessages = messages.slice(0, 5).map(m => `- [${m.direction}] ${m.message_type}: ${m.summary || m.message}`).join('\\n');\nconst pendingFollowUps = followUps.filter(f => f.status !== 'Completed').map(f => `- ${f.title} (due ${f.due_date})`).join('\\n');\n\nconst prompt = `You are an expert business communication assistant helping a solo service provider reach out to a client.\n\nClient details:\n- Name: ${client.name}\n- Business type: ${client.business_type || 'Not specified'}\n- Tags: ${(client.tags || []).join(', ') || 'None'}\n- Status: ${client.status}\n- Notes: ${client.notes || 'None'}\n- Last contacted: ${client.last_contact_date || 'Never'}\n\nRecent conversation history:\n${recentMessages || 'No previous conversations'}\n\nPending follow-ups:\n${pendingFollowUps || 'None'}\n\nWrite a warm, professional, and personalised WhatsApp message from the service provider to this client. The message should:\n1. Reference the client's specific business context and notes\n2. Be conversational and friendly (not salesy)\n3. Include a clear but gentle call-to-action\n4. Be under 150 words\n5. Feel human — not like a template\n\nReturn ONLY the message text, no subject lines or extra formatting.`;\n\nreturn [{ json: { prompt, client_name: client.name } }];"
+      },
+      "id": "prepare-prompt",
+      "name": "Prepare Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 300
+        }
+      },
+      "id": "openai-call",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.4,
+      "position": [680, 300],
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const draft = $input.first().json.message?.content || $input.first().json.content || '';\nreturn [{\n  json: {\n    draft_text: draft.trim(),\n    channel: 'WhatsApp',\n    status: 'Draft'\n  }\n}];"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Prepare Prompt", "type": "main", "index": 0 }]]
+    },
+    "Prepare Prompt": {
+      "main": [[{ "node": "OpenAI", "type": "main", "index": 0 }]]
+    },
+    "OpenAI": {
+      "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]]
+    },
+    "Format Response": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

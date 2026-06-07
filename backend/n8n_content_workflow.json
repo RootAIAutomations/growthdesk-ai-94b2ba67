@@ -1,0 +1,96 @@
+{
+  "name": "GrowthDesk AI — Content Calendar Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "growthdesk-content",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "growthdesk-content"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst weekStartDate = body.weekStartDate || new Date().toISOString().split('T')[0];\nconst businessContext = body.businessContext || 'A solo service provider business';\n\nconst prompt = `You are a content strategist for solo service providers and freelancers.\n\nBusiness context: ${businessContext}\nWeek starting: ${weekStartDate}\n\nGenerate a 7-day content plan for this business. For each day, create:\n1. A topic/theme relevant to solo service providers\n2. An Instagram caption (engaging, with 3-5 relevant hashtags, under 150 words)\n3. A LinkedIn post (professional, thought-leadership tone, 100-200 words)\n4. A blog opener paragraph (informative, hooks the reader, 60-80 words)\n\nReturn ONLY valid JSON in this exact format:\n{\n  \"posts\": [\n    {\n      \"content_date\": \"YYYY-MM-DD\",\n      \"day_number\": 1,\n      \"topic\": \"Topic title\",\n      \"instagram_caption\": \"Caption text with #hashtags\",\n      \"linkedin_post\": \"LinkedIn post text\",\n      \"blog_opener\": \"Blog opening paragraph\",\n      \"tags\": [\"tag1\", \"tag2\"],\n      \"status\": \"Generated\"\n    }\n  ]\n}\n\nGenerate all 7 days starting from ${weekStartDate}. Make each day's content unique and valuable.`;\n\nreturn [{ json: { prompt, weekStartDate } }];"
+      },
+      "id": "prepare-prompt",
+      "name": "Prepare Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.8,
+          "maxTokens": 3000,
+          "responseFormat": "json_object"
+        }
+      },
+      "id": "openai-call",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.4,
+      "position": [680, 300],
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.message?.content || $input.first().json.content || '{}';\nlet parsed;\ntry {\n  parsed = JSON.parse(raw);\n} catch (e) {\n  parsed = { posts: [] };\n}\nreturn [{ json: parsed }];"
+      },
+      "id": "parse-response",
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Prepare Prompt", "type": "main", "index": 0 }]]
+    },
+    "Prepare Prompt": {
+      "main": [[{ "node": "OpenAI", "type": "main", "index": 0 }]]
+    },
+    "OpenAI": {
+      "main": [[{ "node": "Parse Response", "type": "main", "index": 0 }]]
+    },
+    "Parse Response": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
