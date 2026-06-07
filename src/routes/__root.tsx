@@ -4,15 +4,19 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useNavigate,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppLayout } from "../components/AppLayout";
 import { Toaster } from "../components/ui/sonner";
+import { Sparkles } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -124,10 +128,53 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppLayout>
-        <Outlet />
-      </AppLayout>
+      <AuthGuard />
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
+  );
+}
+
+const PUBLIC_ROUTES = ["/login"];
+
+function AuthGuard() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isPublic = PUBLIC_ROUTES.includes(pathname);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user && !isPublic) {
+      navigate({ to: "/login" });
+    } else if (user && isPublic) {
+      navigate({ to: "/" });
+    }
+  }, [user, loading, isPublic, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-10 rounded-xl bg-primary grid place-items-center text-primary-foreground animate-pulse">
+            <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <p className="text-sm text-muted-foreground">Loading GrowthDesk AI…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user && !isPublic) return null;
+
+  if (isPublic) {
+    return <Outlet />;
+  }
+
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
   );
 }

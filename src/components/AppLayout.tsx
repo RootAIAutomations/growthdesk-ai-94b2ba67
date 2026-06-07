@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Users,
@@ -8,9 +8,13 @@ import {
   Library,
   Settings,
   Sparkles,
+  LogOut,
+  ChevronDown,
 } from "lucide-react";
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth, signOut } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -24,8 +28,21 @@ const nav = [
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate({ to: "/login" });
+  };
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -57,8 +74,34 @@ export function AppLayout({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
-        <div className="px-6 py-4 text-xs text-muted-foreground border-t border-sidebar-border">
-          GrowthDesk AI
+        {/* User info + logout */}
+        <div className="px-3 py-3 border-t border-sidebar-border">
+          <div className="relative">
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-sidebar-accent/60 transition-colors text-left"
+            >
+              <div className="size-8 rounded-full bg-primary/20 text-primary grid place-items-center text-xs font-semibold shrink-0">
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-medium text-sidebar-foreground truncate">{displayName}</div>
+                <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
+              </div>
+              <ChevronDown className={cn("size-3.5 text-muted-foreground transition-transform", userMenuOpen && "rotate-180")} />
+            </button>
+            {userMenuOpen && (
+              <div className="absolute bottom-full left-0 right-0 mb-1 bg-popover border border-border rounded-md shadow-md py-1 z-50">
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <LogOut className="size-4" />
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </aside>
 
