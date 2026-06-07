@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, CalendarDays, Sparkles, Copy, BookmarkPlus, Instagram, Linkedin, FileText, Trash2, Video } from "lucide-react";
+import { Plus, CalendarDays, Sparkles, Copy, BookmarkPlus, Instagram, Linkedin, FileText, Trash2, Video, ImageIcon, Loader2 } from "lucide-react";
 import { format, parseISO, startOfWeek } from "date-fns";
 import { toast } from "sonner";
 import { supabase, type ContentItem } from "@/lib/db";
-import { requestContentPlan } from "@/lib/automation";
+import { requestContentPlan, generatePostImage } from "@/lib/automation";
 import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/calendar")({
@@ -105,6 +105,25 @@ function CalendarPage() {
       toast.success(`Saved ${vars.platform} post to library`);
     },
     onError: (e: any) => toast.error(e.message || "Could not save to library"),
+  });
+
+  const generateImage = useMutation({
+    mutationFn: async (item: ContentItem) => {
+      const result = await generatePostImage({
+        topic: item.topic,
+        caption: item.instagram_caption ?? undefined,
+        businessContext: getBusinessContext(),
+      });
+      if (!result.image_url) throw new Error("No image URL returned");
+      const { error } = await supabase.from("content_calendar").update({ image_url: result.image_url } as any).eq("id", item.id);
+      if (error) throw error;
+      return result.image_url;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["calendar"] });
+      toast.success("Image generated");
+    },
+    onError: (e: any) => toast.error(e.message || "Could not generate image"),
   });
 
   const deletePost = useMutation({
@@ -235,7 +254,7 @@ function CalendarPage() {
               </DialogHeader>
 
               <Tabs defaultValue={selected.instagram_caption ? "instagram" : selected.linkedin_post ? "linkedin" : "blog"}>
-                <TabsList className="grid grid-cols-4 w-full">
+                <TabsList className="grid grid-cols-5 w-full">
                   <TabsTrigger value="instagram" disabled={!selected.instagram_caption}>
                     <Instagram className="size-3.5 mr-1.5" /> Instagram
                   </TabsTrigger>
@@ -247,6 +266,9 @@ function CalendarPage() {
                   </TabsTrigger>
                   <TabsTrigger value="video" disabled={!(selected as any).video_script}>
                     <Video className="size-3.5 mr-1.5" /> Script
+                  </TabsTrigger>
+                  <TabsTrigger value="image">
+                    <ImageIcon className="size-3.5 mr-1.5" /> Image
                   </TabsTrigger>
                 </TabsList>
 
@@ -290,6 +312,34 @@ function CalendarPage() {
                       <BookmarkPlus className="size-3.5 mr-1.5" /> Save to Library
                     </Button>
                   </div>
+                </TabsContent>
+
+                <TabsContent value="image" className="mt-4">
+                  {(selected as any).image_url ? (
+                    <div className="space-y-3">
+                      <img src={(selected as any).image_url} alt={selected.topic} className="w-full rounded-lg object-cover max-h-72" />
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText((selected as any).image_url); toast.success("URL copied"); }}>
+                          <Copy className="size-3.5 mr-1.5" /> Copy URL
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => window.open((selected as any).image_url, "_blank")}>
+                          Open full size
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={generateImage.isPending} onClick={() => generateImage.mutate(selected)}>
+                          {generateImage.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5 mr-1.5" />} Regenerate
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground space-y-3">
+                      <ImageIcon className="size-10 mx-auto opacity-30" />
+                      <p className="text-sm">No image generated yet for this post.</p>
+                      <Button disabled={generateImage.isPending} onClick={() => generateImage.mutate(selected)}>
+                        {generateImage.isPending ? <><Loader2 className="size-4 animate-spin mr-2" /> Generating…</> : <><Sparkles className="size-4 mr-2" /> Generate Image</>}
+                      </Button>
+                      <p className="text-xs text-muted-foreground">Requires the n8n image workflow to be active.</p>
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="video" className="mt-4">

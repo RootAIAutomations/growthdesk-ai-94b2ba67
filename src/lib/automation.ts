@@ -12,6 +12,20 @@ type ContentPayload = {
   weekStartDate: string;
 };
 
+type EmailPayload = {
+  clientName: string;
+  clientEmail: string;
+  draftText: string;
+  businessName?: string;
+  senderName?: string;
+};
+
+type ImagePayload = {
+  topic: string;
+  caption?: string;
+  businessContext?: string;
+};
+
 type OutreachResponse = {
   draft_text?: string;
   edited_text?: string | null;
@@ -32,6 +46,16 @@ type ContentResponse = {
     tags?: string[];
     status?: string;
   }>;
+};
+
+type EmailResponse = {
+  success?: boolean;
+  message?: string;
+};
+
+type ImageResponse = {
+  image_url?: string;
+  error?: string;
 };
 
 async function postWebhook<TPayload, TResponse>(url: string, payload: TPayload): Promise<TResponse> {
@@ -61,4 +85,13 @@ export async function requestContentPlan(payload: ContentPayload): Promise<Conte
   const webhookUrl = import.meta.env.VITE_N8N_CONTENT_WEBHOOK_URL || "https://automation.mavops.co.uk/webhook/growthdesk-content";
   return postWebhook<ContentPayload, ContentResponse>(webhookUrl, payload);
 }
-// Sun Jun  7 13:17:13 BST 2026
+
+export async function sendEmailDraft(payload: EmailPayload): Promise<EmailResponse> {
+  const webhookUrl = import.meta.env.VITE_N8N_EMAIL_WEBHOOK_URL || "https://automation.mavops.co.uk/webhook/growthdesk-email";
+  return postWebhook<EmailPayload, EmailResponse>(webhookUrl, payload);
+}
+
+export async function generatePostImage(payload: ImagePayload): Promise<ImageResponse> {
+  const webhookUrl = import.meta.env.VITE_N8N_IMAGE_WEBHOOK_URL || "https://automation.mavops.co.uk/webhook/growthdesk-image";
+  return postWebhook<ImagePayload, ImageResponse>(webhookUrl, payload);
+}

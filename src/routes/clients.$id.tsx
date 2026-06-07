@@ -11,12 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Sparkles, Copy, MessageCircle, Send, Plus, Mail, Phone, Briefcase, Trash2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Copy, MessageCircle, Send, Plus, Mail, Phone, Briefcase, Trash2, Mic, MicOff, SendHorizonal } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { supabase, statusColor, type Client, type Message, type FollowUp, type Outreach } from "@/lib/db";
-import { requestOutreachDraft } from "@/lib/automation";
+import { requestOutreachDraft, sendEmailDraft } from "@/lib/automation";
 import { useProfile } from "@/hooks/useProfile";
+import { useVoiceTranscription } from "@/hooks/useVoiceTranscription";
 
 export const Route = createFileRoute("/clients/$id")({
   head: () => ({ meta: [{ title: "Client — GrowthDesk AI" }] }),
@@ -64,6 +65,8 @@ function ClientDetail() {
   const [msgContent, setMsgContent] = useState("");
   const [msgChannel, setMsgChannel] = useState("WhatsApp");
   const [msgDir, setMsgDir] = useState("Outbound");
+
+  const voice = useVoiceTranscription((text) => setMsgContent((prev) => prev ? `${prev} ${text}` : text));
   const addMessage = useMutation({
     mutationFn: async () => {
       const user_id = await getUserId();
@@ -136,6 +139,23 @@ function ClientDetail() {
     },
     onError: (e: any) => toast.error(e.message || "Could not delete draft"),
   });
+  const { profile } = useProfile();
+
+  const emailDraft = useMutation({
+    mutationFn: async ({ draftText }: { draftText: string }) => {
+      if (!client?.email) throw new Error("No email address on file for this client.");
+      await sendEmailDraft({
+        clientName: client.name,
+        clientEmail: client.email,
+        draftText,
+        businessName: profile?.business_name,
+        senderName: profile?.full_name,
+      });
+    },
+    onSuccess: () => toast.success("Email sent successfully"),
+    onError: (e: any) => toast.error(e.message || "Could not send email"),
+  });
+
   const copyDraft = (text?: string) => {
     if (text) navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
@@ -229,7 +249,20 @@ function ClientDetail() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Textarea rows={2} placeholder="What was said?" value={msgContent} onChange={(e) => setMsgContent(e.target.value)} />
+                  <div className="relative">
+                    <Textarea rows={2} placeholder="What was said? Or tap the mic to speak…" value={msgContent} onChange={(e) => setMsgContent(e.target.value)} className="pr-10" />
+                    {voice.isSupported && (
+                      <button
+                        type="button"
+                        onClick={voice.state === "listening" ? voice.stop : voice.start}
+                        className={`absolute right-2 top-2 p-1.5 rounded-md transition-colors ${voice.state === "listening" ? "bg-red-100 text-red-600 animate-pulse" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                        title={voice.state === "listening" ? "Stop recording" : "Speak to fill"}
+                      >
+                        {voice.state === "listening" ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+                      </button>
+                    )}
+                  </div>
+                  {voice.errorMsg && <p className="text-xs text-destructive">{voice.errorMsg}</p>}
                   <div className="flex justify-end">
                     <Button size="sm" disabled={!msgContent.trim() || addMessage.isPending} onClick={() => addMessage.mutate()}>
                       <Send className="size-3.5" /> Log
@@ -298,6 +331,17 @@ function ClientDetail() {
                     <div className="bg-muted/40 rounded-lg p-3 text-sm whitespace-pre-wrap mb-3 leading-relaxed">{d.edited_text || d.draft_text}</div>
                     <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => copyDraft(d.edited_text || d.draft_text)}><Copy className="size-3.5" /> Copy</Button>
+                      {client.email && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-blue-600 border-blue-500/30 hover:bg-blue-50"
+                          disabled={emailDraft.isPending}
+                          onClick={() => emailDraft.mutate({ draftText: d.edited_text || d.draft_text })}
+                        >
+                          <SendHorizonal className="size-3.5" /> Send Email
+                        </Button>
+                      )}
                       {d.channel === "WhatsApp" && (
                         <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-500/30 hover:bg-emerald-50" onClick={() => openWhatsApp(d.edited_text || d.draft_text)}>
                           <MessageCircle className="size-3.5" /> Open in WhatsApp
