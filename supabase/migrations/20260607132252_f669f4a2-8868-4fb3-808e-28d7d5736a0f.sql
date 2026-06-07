@@ -1,0 +1,1 @@
+ALTER TABLE public.content_calendar ADD COLUMN IF NOT EXISTS video_script text;
