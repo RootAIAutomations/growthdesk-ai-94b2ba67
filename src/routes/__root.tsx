@@ -79,14 +79,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GrowthDesk AI — CRM for Solo Service Providers" },
-      { name: "description", content: "A modern CRM dashboard for solo service providers. Manage clients, follow-ups, outreach, and content in one place." },
+      { title: "GrowthDesk AI — CRM for Soloprenuers" },
+      { name: "description", content: "Manage clients, generate AI outreach drafts, track follow-ups, and create content calendars from one intelligent workspace." },
       { name: "author", content: "GrowthDesk AI" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "GrowthDesk AI — CRM for Soloprenuers" },
+      { property: "og:description", content: "Manage clients, generate AI outreach drafts, track follow-ups, and create content calendars from one intelligent workspace." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "GrowthDesk AI — CRM for Soloprenuers" },
+      { name: "twitter:description", content: "Manage clients, generate AI outreach drafts, track follow-ups, and create content calendars from one intelligent workspace." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/egCe9rOSLkNkQ2OdGCdtqR85WBs2/social-images/social-1780804747854-image.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/egCe9rOSLkNkQ2OdGCdtqR85WBs2/social-images/social-1780804747854-image.webp" },
     ],
     links: [
       {
