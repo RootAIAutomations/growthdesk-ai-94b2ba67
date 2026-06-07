@@ -56,7 +56,7 @@ function CalendarPage() {
 
   const generatePlan = useMutation({
     mutationFn: async () => {
-      const weekStartDate = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+      const weekStartDate = format(new Date(), "yyyy-MM-dd");
       const result = await requestContentPlan({
         weekStartDate,
         businessContext: getBusinessContext(),
