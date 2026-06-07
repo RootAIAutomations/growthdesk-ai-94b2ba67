@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, CalendarDays, Sparkles } from "lucide-react";
+import { Plus, CalendarDays, Sparkles, BookmarkPlus } from "lucide-react";
 import { format, parseISO, startOfWeek } from "date-fns";
 import { toast } from "sonner";
 import { supabase, type ContentItem } from "@/lib/db";
@@ -32,6 +32,23 @@ function CalendarPage() {
       const { data } = await supabase.from("content_calendar").select("*").order("content_date");
       return (data ?? []) as ContentItem[];
     },
+  });
+
+  const saveToLibrary = useMutation({
+    mutationFn: async (p: ContentItem) => {
+      const content = p.instagram_caption || p.linkedin_post || p.blog_opener || p.topic || "";
+      const platform = p.instagram_caption ? "Instagram" : p.linkedin_post ? "LinkedIn" : "Blog";
+      const { error } = await supabase.from("content_library").insert({
+        content_calendar_id: p.id,
+        title: p.topic || format(parseISO(p.content_date), "MMM d"),
+        platform,
+        content,
+        tags: p.tags ?? [],
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => toast.success("Saved to library"),
+    onError: (e: any) => toast.error(e.message || "Could not save to library"),
   });
 
   const create = useMutation({
@@ -121,6 +138,11 @@ function CalendarPage() {
                   <span>{format(parseISO(p.content_date), "MMM d, yyyy")}</span>
                 </div>
                 {p.linkedin_post && <p className="text-sm mt-2 text-muted-foreground line-clamp-2">{p.linkedin_post}</p>}
+                <div className="mt-3">
+                  <Button size="sm" variant="outline" disabled={saveToLibrary.isPending} onClick={() => saveToLibrary.mutate(p)}>
+                    <BookmarkPlus className="size-3.5" /> Save to library
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

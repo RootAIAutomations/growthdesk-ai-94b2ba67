@@ -123,7 +123,11 @@ function ClientDetail() {
   const openWhatsApp = () => {
     if (!client?.phone) return toast.error("No phone number on file");
     const phone = client.phone.replace(/\D/g, "");
-    window.open(`https://wa.me/${phone}`, "_blank");
+    const latestDraftText = drafts[0]?.edited_text || drafts[0]?.draft_text;
+    const url = latestDraftText
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(latestDraftText)}`
+      : `https://wa.me/${phone}`;
+    window.open(url, "_blank");
   };
 
   if (!client) return <div className="p-8 text-muted-foreground">Loading…</div>;
