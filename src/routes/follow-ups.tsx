@@ -43,13 +43,14 @@ function FollowUpsPage() {
 
   const toggle = useMutation({
     mutationFn: async (f: FollowUpJoined) => {
-      const { error } = await supabase.from("follow_up_schedule").update({ completed: !f.completed, completed_at: !f.completed ? new Date().toISOString() : null }).eq("id", f.id);
+      const isCompleted = f.status === "Completed";
+      const { error } = await supabase.from("follow_up_schedule").update({ status: isCompleted ? "Pending" : "Completed", completed_at: isCompleted ? null : new Date().toISOString() }).eq("id", f.id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["followups-all"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); },
   });
 
-  const [form, setForm] = useState({ client_id: "", task: "", due_date: format(new Date(), "yyyy-MM-dd") });
+  const [form, setForm] = useState({ client_id: "", title: "", due_date: format(new Date(), "yyyy-MM-dd"), priority: "Medium" });
   const create = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("follow_up_schedule").insert(form);
@@ -58,14 +59,14 @@ function FollowUpsPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["followups-all"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
-      setOpen(false); setForm({ client_id: "", task: "", due_date: format(new Date(), "yyyy-MM-dd") });
+      setOpen(false); setForm({ client_id: "", title: "", due_date: format(new Date(), "yyyy-MM-dd"), priority: "Medium" });
       toast.success("Follow-up created");
     },
   });
 
   const today = startOfDay(new Date());
   const weekEnd = endOfWeek(today);
-  const active = items.filter((i) => !i.completed);
+  const active = items.filter((i) => i.status !== "Completed");
 
   const overdue = active.filter((i) => isBefore(parseISO(i.due_date), today));
   const dueToday = active.filter((i) => isToday(parseISO(i.due_date)));
@@ -73,7 +74,7 @@ function FollowUpsPage() {
     const d = parseISO(i.due_date);
     return !isToday(d) && !isBefore(d, today) && isWithinInterval(d, { start: addDays(today, 1), end: weekEnd });
   });
-  const completed = items.filter((i) => i.completed).slice(0, 10);
+  const completed = items.filter((i) => i.status === "Completed").slice(0, 10);
 
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto">
@@ -92,9 +93,9 @@ function FollowUpsPage() {
                     <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div><Label className="text-xs">Task</Label><Input value={form.task} onChange={(e) => setForm({ ...form, task: e.target.value })} /></div>
+                <div><Label className="text-xs">Task</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
                 <div><Label className="text-xs">Due date</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} /></div>
-                <div className="flex justify-end"><Button disabled={!form.client_id || !form.task} onClick={() => create.mutate()}>Create</Button></div>
+                <div className="flex justify-end"><Button disabled={!form.client_id || !form.title} onClick={() => create.mutate()}>Create</Button></div>
               </div>
             </DialogContent>
           </Dialog>
@@ -122,9 +123,9 @@ function Section({ title, icon: Icon, color, items, onToggle }: { title: string;
         {items.map((f) => (
           <div key={f.id} className="flex items-center justify-between p-3 rounded-md border">
             <div className="flex items-center gap-3">
-              <input type="checkbox" checked={f.completed} onChange={() => onToggle(f)} className="size-4" />
+              <input type="checkbox" checked={f.status === "Completed"} onChange={() => onToggle(f)} className="size-4" />
               <div>
-                <div className={`text-sm font-medium ${f.completed ? "line-through text-muted-foreground" : ""}`}>{f.task}</div>
+                <div className={`text-sm font-medium ${f.status === "Completed" ? "line-through text-muted-foreground" : ""}`}>{f.title}</div>
                 <div className="text-xs text-muted-foreground">
                   {f.clients ? <Link to="/clients/$id" params={{ id: f.clients.id }} className="hover:underline">{f.clients.name}</Link> : "—"}
                   {" · "}Due {format(parseISO(f.due_date), "MMM d, yyyy")}
