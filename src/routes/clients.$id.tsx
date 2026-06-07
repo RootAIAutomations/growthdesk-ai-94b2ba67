@@ -289,13 +289,24 @@ function ClientDetail() {
                       <span className="text-xs text-muted-foreground">{format(parseISO(d.generated_at), "MMM d, yyyy")}</span>
                     </div>
                     <div className="bg-muted/40 rounded-lg p-3 text-sm whitespace-pre-wrap mb-3 leading-relaxed">{d.edited_text || d.draft_text}</div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => copyDraft(d.edited_text || d.draft_text)}><Copy className="size-3.5" /> Copy</Button>
                       {d.channel === "WhatsApp" && (
                         <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-500/30 hover:bg-emerald-50" onClick={() => openWhatsApp(d.edited_text || d.draft_text)}>
                           <MessageCircle className="size-3.5" /> Open in WhatsApp
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/10"
+                        disabled={deleteDraft.isPending}
+                        onClick={() => {
+                          if (confirm("Delete this draft? This cannot be undone.")) deleteDraft.mutate(d.id);
+                        }}
+                      >
+                        <Trash2 className="size-3.5" /> Delete
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
