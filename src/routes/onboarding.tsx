@@ -36,6 +36,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldError, setFieldError] = useState<string | null>(null);
 
   // Credentials (step 1)
   const [credentials, setCredentials] = useState({ full_name: "", email: "", password: "" });
@@ -56,16 +57,18 @@ export default function OnboardingPage() {
       if (user?.user_metadata?.onboarding_complete) {
         navigate({ to: "/" });
       } else if (user) {
-        // Already signed in but not complete — skip to step 2
+        // Already signed in but onboarding not done — skip account creation step
         setStep(2);
       }
     });
   }, [navigate]);
 
   function updateCreds(field: string, value: string) {
+    setFieldError(null);
     setCredentials(c => ({ ...c, [field]: value }));
   }
   function updateProfile(field: string, value: string) {
+    setFieldError(null);
     setProfile(p => ({ ...p, [field]: value }));
   }
 
@@ -78,16 +81,34 @@ export default function OnboardingPage() {
 
   async function handleStep1() {
     setLoading(true);
+    setFieldError(null);
     try {
-      // Sign up
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: credentials.email,
         password: credentials.password,
         options: { data: { full_name: credentials.full_name } },
       });
-      if (signUpError) throw signUpError;
 
-      // Auto sign in
+      if (signUpError) {
+        // "User already registered" — offer to sign in instead
+        if (signUpError.message?.toLowerCase().includes("already registered") ||
+            signUpError.message?.toLowerCase().includes("already been registered")) {
+          setFieldError("An account with this email already exists. Try signing in instead.");
+          setLoading(false);
+          return;
+        }
+        throw signUpError;
+      }
+
+      // Supabase sometimes returns a user but with an identities array of length 0
+      // when email confirmation is off but the email was previously used — treat as duplicate
+      if (data.user && data.user.identities?.length === 0) {
+        setFieldError("An account with this email already exists. Try signing in instead.");
+        setLoading(false);
+        return;
+      }
+
+      // Auto sign in right after signup
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
@@ -96,7 +117,8 @@ export default function OnboardingPage() {
 
       setStep(2);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Could not create account. Try again.");
+      const msg = err instanceof Error ? err.message : "Could not create account. Please try again.";
+      setFieldError(msg);
     } finally {
       setLoading(false);
     }
@@ -104,6 +126,7 @@ export default function OnboardingPage() {
 
   async function handleFinish() {
     setLoading(true);
+    setFieldError(null);
     try {
       const { error } = await supabase.auth.updateUser({
         data: {
@@ -115,7 +138,8 @@ export default function OnboardingPage() {
       if (error) throw error;
       navigate({ to: "/" });
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Could not save your profile. Please try again.");
+      const msg = err instanceof Error ? err.message : "Could not save your profile. Please try again.";
+      setFieldError(msg);
     } finally {
       setLoading(false);
     }
@@ -328,6 +352,21 @@ export default function OnboardingPage() {
                 ))}
               </div>
             </>
+          )}
+
+          {/* Inline error */}
+          {fieldError && (
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+              {fieldError}
+              {fieldError.includes("already exists") && (
+                <button
+                  onClick={() => navigate({ to: "/login" })}
+                  className="ml-2 underline font-medium hover:no-underline"
+                >
+                  Sign in →
+                </button>
+              )}
+            </div>
           )}
 
           {/* Navigation */}
