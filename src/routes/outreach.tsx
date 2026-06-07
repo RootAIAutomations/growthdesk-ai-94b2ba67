@@ -162,7 +162,7 @@ function OutreachPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/10"
+                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
                   disabled={deleteDraft.isPending}
                   onClick={() => {
                     if (confirm("Delete this draft? This cannot be undone.")) deleteDraft.mutate(d.id);
