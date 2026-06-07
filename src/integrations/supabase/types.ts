@@ -22,7 +22,6 @@ export type Database = {
           follow_up_date: string | null
           id: string
           last_contact_date: string | null
-          last_contacted: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -37,7 +36,6 @@ export type Database = {
           follow_up_date?: string | null
           id?: string
           last_contact_date?: string | null
-          last_contacted?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -52,7 +50,6 @@ export type Database = {
           follow_up_date?: string | null
           id?: string
           last_contact_date?: string | null
-          last_contacted?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
@@ -68,16 +65,14 @@ export type Database = {
           content_date: string
           created_at: string
           day_number: number | null
-          generated_at: string | null
+          generated_at: string
           generated_by: string | null
           id: string
           instagram_caption: string | null
           linkedin_post: string | null
-          notes: string | null
-          platform: string | null
           status: string
           tags: string[] | null
-          topic: string
+          topic: string | null
           updated_at: string
           week_start_date: string | null
         }
@@ -86,16 +81,14 @@ export type Database = {
           content_date: string
           created_at?: string
           day_number?: number | null
-          generated_at?: string | null
+          generated_at?: string
           generated_by?: string | null
           id?: string
           instagram_caption?: string | null
           linkedin_post?: string | null
-          notes?: string | null
-          platform?: string | null
           status?: string
           tags?: string[] | null
-          topic: string
+          topic?: string | null
           updated_at?: string
           week_start_date?: string | null
         }
@@ -104,16 +97,14 @@ export type Database = {
           content_date?: string
           created_at?: string
           day_number?: number | null
-          generated_at?: string | null
+          generated_at?: string
           generated_by?: string | null
           id?: string
           instagram_caption?: string | null
           linkedin_post?: string | null
-          notes?: string | null
-          platform?: string | null
           status?: string
           tags?: string[] | null
-          topic?: string
+          topic?: string | null
           updated_at?: string
           week_start_date?: string | null
         }
@@ -121,83 +112,82 @@ export type Database = {
       }
       content_library: {
         Row: {
-          body: string | null
-          content: string | null
+          content: string
           content_calendar_id: string | null
-          content_type: string | null
           created_at: string
           id: string
-          platform: string | null
+          platform: string
           source: string | null
           tags: string[] | null
           title: string
           updated_at: string
         }
         Insert: {
-          body?: string | null
-          content?: string | null
+          content: string
           content_calendar_id?: string | null
-          content_type?: string | null
           created_at?: string
           id?: string
-          platform?: string | null
+          platform: string
           source?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
         }
         Update: {
-          body?: string | null
-          content?: string | null
+          content?: string
           content_calendar_id?: string | null
-          content_type?: string | null
           created_at?: string
           id?: string
-          platform?: string | null
+          platform?: string
           source?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_library_content_calendar_id_fkey"
+            columns: ["content_calendar_id"]
+            isOneToOne: false
+            referencedRelation: "content_calendar"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       follow_up_schedule: {
         Row: {
           client_id: string
-          completed: boolean
           completed_at: string | null
           created_at: string
           due_date: string
           id: string
           notes: string | null
           priority: string | null
-          status: string | null
+          status: string
           title: string
           updated_at: string
         }
         Insert: {
           client_id: string
-          completed?: boolean
           completed_at?: string | null
           created_at?: string
           due_date: string
           id?: string
           notes?: string | null
           priority?: string | null
-          status?: string | null
+          status?: string
           title: string
           updated_at?: string
         }
         Update: {
           client_id?: string
-          completed?: boolean
           completed_at?: string | null
           created_at?: string
           due_date?: string
           id?: string
           notes?: string | null
           priority?: string | null
-          status?: string | null
+          status?: string
           title?: string
           updated_at?: string
         }
@@ -219,8 +209,8 @@ export type Database = {
           direction: string
           id: string
           interaction_date: string
-          message: string
-          message_type: string | null
+          message: string | null
+          message_type: string
           summary: string | null
           updated_at: string
         }
@@ -231,8 +221,8 @@ export type Database = {
           direction?: string
           id?: string
           interaction_date?: string
-          message: string
-          message_type?: string | null
+          message?: string | null
+          message_type?: string
           summary?: string | null
           updated_at?: string
         }
@@ -243,8 +233,8 @@ export type Database = {
           direction?: string
           id?: string
           interaction_date?: string
-          message?: string
-          message_type?: string | null
+          message?: string | null
+          message_type?: string
           summary?: string | null
           updated_at?: string
         }
@@ -261,40 +251,43 @@ export type Database = {
       outreach_drafts: {
         Row: {
           channel: string
-          client_id: string | null
+          client_id: string
           copied_at: string | null
+          created_at: string
           draft_text: string
           edited_text: string | null
           generated_at: string
           generated_by: string | null
           id: string
-          prompt_context: Json | null
+          prompt_context: Json
           status: string
           updated_at: string
         }
         Insert: {
           channel?: string
-          client_id?: string | null
+          client_id: string
           copied_at?: string | null
+          created_at?: string
           draft_text: string
           edited_text?: string | null
           generated_at?: string
           generated_by?: string | null
           id?: string
-          prompt_context?: Json | null
+          prompt_context?: Json
           status?: string
           updated_at?: string
         }
         Update: {
           channel?: string
-          client_id?: string | null
+          client_id?: string
           copied_at?: string | null
+          created_at?: string
           draft_text?: string
           edited_text?: string | null
           generated_at?: string
           generated_by?: string | null
           id?: string
-          prompt_context?: Json | null
+          prompt_context?: Json
           status?: string
           updated_at?: string
         }

@@ -105,7 +105,7 @@ function ClientDetail() {
         draft_text: draftText,
         edited_text: result.edited_text || null,
         status: result.status || "Draft",
-        prompt_context: (result.prompt_context || {}) as any,
+        prompt_context: result.prompt_context || {},
       });
       if (error) throw error;
     },
@@ -271,7 +271,7 @@ function ClientDetail() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <Badge variant="outline">{d.channel}</Badge>
-                      <span className="text-xs text-muted-foreground">{format(parseISO(d.generated_at), "MMM d, yyyy")}</span>
+                      <span className="text-xs text-muted-foreground">{format(parseISO(d.created_at), "MMM d, yyyy")}</span>
                     </div>
                     <p className="text-sm whitespace-pre-wrap mb-2">{d.edited_text || d.draft_text}</p>
                     <Button size="sm" variant="outline" onClick={() => copyDraft(d.edited_text || d.draft_text)}><Copy className="size-3.5" /> Copy</Button>

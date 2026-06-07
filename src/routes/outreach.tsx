@@ -44,7 +44,7 @@ function OutreachPage() {
                   <Badge variant="outline">{d.channel}</Badge>
                   <Badge variant="secondary">{d.status}</Badge>
                 </div>
-                <span className="text-xs text-muted-foreground">{format(parseISO(d.generated_at), "MMM d, yyyy p")}</span>
+                <span className="text-xs text-muted-foreground">{format(parseISO(d.created_at), "MMM d, yyyy p")}</span>
               </div>
               <p className="text-sm whitespace-pre-wrap mb-3">{d.edited_text || d.draft_text}</p>
               <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(d.edited_text || d.draft_text); toast.success("Copied"); }}>

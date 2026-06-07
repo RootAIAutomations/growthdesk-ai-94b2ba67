@@ -57,8 +57,7 @@ function CalendarPage() {
 
       if (!result.posts?.length) throw new Error("Automation did not return content posts.");
 
-      const rows = result.posts.map((p) => ({ ...p, topic: p.topic ?? "Content idea" }));
-      const { error } = await supabase.from("content_calendar").insert(rows);
+      const { error } = await supabase.from("content_calendar").insert(result.posts);
       if (error) throw error;
     },
     onSuccess: () => {
