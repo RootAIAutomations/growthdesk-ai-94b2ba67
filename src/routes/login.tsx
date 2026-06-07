@@ -1,62 +1,35 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-type Mode = "signin" | "signup";
-
 function LoginPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // If already signed in, go to dashboard
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate({ to: "/" });
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) navigate({ to: "/" });
     });
   }, [navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: name },
-            emailRedirectTo: `${window.location.origin}/`,
-          },
-        });
-        if (error) throw error;
-        // Auto sign in after signup and go to onboarding
-        const { error: signinError } = await supabase.auth.signInWithPassword({ email, password });
-        if (!signinError) {
-          navigate({ to: "/onboarding" });
-          return;
-        }
-        toast.success("Account created! Sign in to continue.");
-        setMode("signin");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate({ to: "/" });
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      navigate({ to: "/" });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
-      toast.error(message);
+      toast.error(err instanceof Error ? err.message : "Invalid login credentials");
     } finally {
       setLoading(false);
     }
@@ -95,12 +68,10 @@ function LoginPage() {
           </div>
         </div>
 
-        <div className="text-xs text-primary-foreground/50">
-          © 2026 GrowthDesk AI
-        </div>
+        <div className="text-xs text-primary-foreground/50">© 2026 GrowthDesk AI</div>
       </div>
 
-      {/* Right panel — form */}
+      {/* Right panel — sign in form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-8">
           {/* Mobile logo */}
@@ -112,51 +83,11 @@ function LoginPage() {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-foreground">
-              {mode === "signin" ? "Welcome back" : "Create your account"}
-            </h2>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {mode === "signin"
-                ? "Sign in to continue"
-                : "Get started with GrowthDesk"}
-            </p>
-          </div>
-
-          {/* Tab toggle */}
-          <div className="flex bg-muted rounded-lg p-1">
-            {(["signin", "signup"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                  mode === m
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {m === "signin" ? "Sign In" : "Sign Up"}
-              </button>
-            ))}
+            <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
+            <p className="text-muted-foreground mt-1 text-sm">Sign in to continue</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "signup" && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Full Name</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Full name"
-                    required={mode === "signup"}
-                    className="w-full pl-9 pr-4 py-2.5 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-              </div>
-            )}
-
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">Email</label>
               <div className="relative">
@@ -180,9 +111,8 @@ function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={mode === "signup" ? "Min. 6 characters" : "Your password"}
+                  placeholder="Your password"
                   required
-                  minLength={6}
                   className="w-full pl-9 pr-10 py-2.5 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <button
@@ -200,25 +130,15 @@ function LoginPage() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
             >
-              {loading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <>
-                  {mode === "signin" ? "Sign In" : "Create Account"}
-                  <ArrowRight className="size-4" />
-                </>
-              )}
+              {loading ? <Loader2 className="size-4 animate-spin" /> : <>Sign In <ArrowRight className="size-4" /></>}
             </button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            {mode === "signin" ? "New to GrowthDesk?" : "Already have an account?"}{" "}
-            <button
-              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-              className="text-primary font-medium hover:underline"
-            >
-              {mode === "signin" ? "Create an account" : "Sign in"}
-            </button>
+            New to GrowthDesk?{" "}
+            <Link to="/onboarding" className="text-primary font-medium hover:underline">
+              Create an account
+            </Link>
           </p>
         </div>
       </div>

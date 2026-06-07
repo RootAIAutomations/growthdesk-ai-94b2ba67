@@ -135,7 +135,8 @@ function RootComponent() {
   );
 }
 
-const PUBLIC_ROUTES = ["/login"];
+// /onboarding is also public — unauthenticated users arrive here to sign up
+const PUBLIC_ROUTES = ["/login", "/onboarding"];
 const ONBOARDING_ROUTE = "/onboarding";
 
 function AuthGuard() {
