@@ -5,11 +5,13 @@ import { PageHeader } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, MessageSquareText, MessageCircle, Search, Trash2 } from "lucide-react";
+import { Copy, MessageSquareText, MessageCircle, Search, Trash2, SendHorizonal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { supabase, type Outreach } from "@/lib/db";
+import { sendEmailDraft } from "@/lib/automation";
+import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/outreach")({
   head: () => ({ meta: [{ title: "Outreach Drafts — GrowthDesk AI" }] }),
@@ -34,14 +36,15 @@ const channelColor: Record<string, string> = {
 
 function OutreachPage() {
   const qc = useQueryClient();
+  const { profile } = useProfile();
   const [channelFilter, setChannelFilter] = useState("All");
   const [search, setSearch] = useState("");
 
   const { data: drafts = [] } = useQuery({
     queryKey: ["all-drafts"],
     queryFn: async () => {
-      const { data } = await supabase.from("outreach_drafts").select("*, clients(id, name, phone)").order("generated_at", { ascending: false });
-      return (data ?? []) as (Outreach & { clients: { id: string; name: string; phone: string | null } | null })[];
+      const { data } = await supabase.from("outreach_drafts").select("*, clients(id, name, phone, email)").order("generated_at", { ascending: false });
+      return (data ?? []) as (Outreach & { clients: { id: string; name: string; phone: string | null; email: string | null } | null })[];
     },
   });
 
@@ -51,6 +54,14 @@ function OutreachPage() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["all-drafts"] }),
+  });
+
+  const emailDraft = useMutation({
+    mutationFn: async ({ draftText, clientEmail, clientName }: { draftText: string; clientEmail: string; clientName: string }) => {
+      await sendEmailDraft({ clientName, clientEmail, draftText, businessName: profile?.business_name, senderName: profile?.full_name });
+    },
+    onSuccess: () => toast.success("Email sent successfully"),
+    onError: (e: any) => toast.error(e.message || "Could not send email"),
   });
 
   const deleteDraft = useMutation({
@@ -157,6 +168,17 @@ function OutreachPage() {
                 {d.channel === "WhatsApp" && (
                   <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-500/30 hover:bg-emerald-50" onClick={() => openWhatsApp(d)}>
                     <MessageCircle className="size-3.5" /> Open in WhatsApp
+                  </Button>
+                )}
+                {d.channel === "Email" && d.clients?.email && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-blue-600 border-blue-500/30 hover:bg-blue-50"
+                    disabled={emailDraft.isPending}
+                    onClick={() => emailDraft.mutate({ draftText: d.edited_text || d.draft_text, clientEmail: d.clients!.email!, clientName: d.clients?.name ?? "" })}
+                  >
+                    <SendHorizonal className="size-3.5" /> Send Email
                   </Button>
                 )}
                 <Button
