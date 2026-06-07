@@ -29,6 +29,7 @@ export type Database = {
           status: Database["public"]["Enums"]["client_status"]
           tags: string[] | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           business_type?: string | null
@@ -44,6 +45,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           business_type?: string | null
@@ -59,6 +61,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -79,6 +82,7 @@ export type Database = {
           tags: string[] | null
           topic: string
           updated_at: string
+          user_id: string | null
           video_script: string | null
           week_start_date: string | null
         }
@@ -98,6 +102,7 @@ export type Database = {
           tags?: string[] | null
           topic: string
           updated_at?: string
+          user_id?: string | null
           video_script?: string | null
           week_start_date?: string | null
         }
@@ -117,6 +122,7 @@ export type Database = {
           tags?: string[] | null
           topic?: string
           updated_at?: string
+          user_id?: string | null
           video_script?: string | null
           week_start_date?: string | null
         }
@@ -135,6 +141,7 @@ export type Database = {
           tags: string[] | null
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           body?: string | null
@@ -148,6 +155,7 @@ export type Database = {
           tags?: string[] | null
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           body?: string | null
@@ -161,6 +169,7 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -177,6 +186,7 @@ export type Database = {
           status: string | null
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           client_id: string
@@ -190,6 +200,7 @@ export type Database = {
           status?: string | null
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           client_id?: string
@@ -203,6 +214,7 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -226,6 +238,7 @@ export type Database = {
           message_type: string | null
           summary: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           client_id: string
@@ -238,6 +251,7 @@ export type Database = {
           message_type?: string | null
           summary?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           client_id?: string
@@ -250,6 +264,7 @@ export type Database = {
           message_type?: string | null
           summary?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -274,6 +289,7 @@ export type Database = {
           prompt_context: Json | null
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           channel?: string
@@ -287,6 +303,7 @@ export type Database = {
           prompt_context?: Json | null
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           channel?: string
@@ -300,6 +317,7 @@ export type Database = {
           prompt_context?: Json | null
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -310,6 +328,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
