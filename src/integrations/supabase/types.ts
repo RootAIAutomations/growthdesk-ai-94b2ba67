@@ -107,25 +107,31 @@ export type Database = {
       content_library: {
         Row: {
           body: string | null
+          content: string | null
           content_type: string | null
           created_at: string
           id: string
+          platform: string | null
           tags: string[] | null
           title: string
         }
         Insert: {
           body?: string | null
+          content?: string | null
           content_type?: string | null
           created_at?: string
           id?: string
+          platform?: string | null
           tags?: string[] | null
           title: string
         }
         Update: {
           body?: string | null
+          content?: string | null
           content_type?: string | null
           created_at?: string
           id?: string
+          platform?: string | null
           tags?: string[] | null
           title?: string
         }
