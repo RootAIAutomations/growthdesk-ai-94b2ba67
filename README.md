@@ -8,7 +8,7 @@
 
 ## 🔗 Live App
 
-**[Open GrowthDesk AI →](https://growthdesk-ai.lovable.app**
+**[Open GrowthDesk AI →](https://growthdesk-ai.lovable.app/login)
 
 > Open in incognito to test as a fresh user. Sign up → complete onboarding → explore.
 
