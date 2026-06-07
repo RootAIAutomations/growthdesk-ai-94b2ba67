@@ -67,7 +67,6 @@ function CalendarPage() {
         instagram_caption: p.instagram_caption ?? null,
         linkedin_post: p.linkedin_post ?? null,
         blog_opener: p.blog_opener ?? null,
-        video_script: (p as any).video_script ?? null,
         tags: p.tags ?? [],
         status: p.status ?? "Generated",
       }));

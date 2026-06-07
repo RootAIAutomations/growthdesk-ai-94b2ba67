@@ -79,7 +79,6 @@ export type Database = {
           tags: string[] | null
           topic: string
           updated_at: string
-          video_script: string | null
           week_start_date: string | null
         }
         Insert: {
@@ -117,7 +116,6 @@ export type Database = {
           tags?: string[] | null
           topic?: string
           updated_at?: string
-          video_script?: string | null
           week_start_date?: string | null
         }
         Relationships: []
