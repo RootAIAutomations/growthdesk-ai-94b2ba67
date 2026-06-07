@@ -105,7 +105,7 @@ function ClientDetail() {
         draft_text: draftText,
         edited_text: result.edited_text || null,
         status: result.status || "Draft",
-        prompt_context: result.prompt_context || {},
+        prompt_context: (result.prompt_context || {}) as any,
       });
       if (error) throw error;
     },
