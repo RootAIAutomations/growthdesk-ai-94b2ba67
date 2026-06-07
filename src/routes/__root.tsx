@@ -11,7 +11,6 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -84,15 +83,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GrowthDesk AI — CRM for Solopreneurs" },
+      { title: "GrowthDesk AI" },
       { name: "description", content: "Manage clients, generate AI outreach drafts, track follow-ups, and create content calendars from one intelligent workspace." },
       { name: "author", content: "GrowthDesk AI" },
-      { property: "og:title", content: "GrowthDesk AI — CRM for Solopreneurs" },
+      { property: "og:title", content: "GrowthDesk AI" },
       { property: "og:description", content: "Manage clients, generate AI outreach drafts, track follow-ups, and create content calendars from one intelligent workspace." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "GrowthDesk AI — CRM for Solopreneurs" },
+      { name: "twitter:title", content: "GrowthDesk AI" },
       { name: "twitter:description", content: "Manage clients, generate AI outreach drafts, track follow-ups, and create content calendars from one intelligent workspace." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/egCe9rOSLkNkQ2OdGCdtqR85WBs2/social-images/social-1780804747854-image.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/egCe9rOSLkNkQ2OdGCdtqR85WBs2/social-images/social-1780804747854-image.webp" },
@@ -135,45 +134,22 @@ function RootComponent() {
   );
 }
 
-// /onboarding is also public — unauthenticated users arrive here to sign up
-const PUBLIC_ROUTES = ["/login", "/onboarding"];
-const ONBOARDING_ROUTE = "/onboarding";
+const PUBLIC_ROUTES = ["/login"];
 
 function AuthGuard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isPublic = PUBLIC_ROUTES.includes(pathname);
-  const isOnboarding = pathname === ONBOARDING_ROUTE;
 
   useEffect(() => {
     if (loading) return;
-
-    if (!user) {
-      if (!isPublic) navigate({ to: "/login" });
-      return;
-    }
-
-    const meta = user.user_metadata || {};
-
-    // Block deleted accounts from re-logging in
-    if (meta.deleted_at) {
-      supabase.auth.signOut();
+    if (!user && !isPublic) {
       navigate({ to: "/login" });
-      return;
-    }
-
-    // Redirect to onboarding if not completed
-    if (!meta.onboarding_complete && !isOnboarding) {
-      navigate({ to: "/onboarding" });
-      return;
-    }
-
-    // Already authed + onboarding done — redirect away from login/onboarding
-    if (isPublic || (isOnboarding && meta.onboarding_complete)) {
+    } else if (user && isPublic) {
       navigate({ to: "/" });
     }
-  }, [user, loading, isPublic, isOnboarding, navigate]);
+  }, [user, loading, isPublic, navigate]);
 
   if (loading) {
     return (
@@ -192,7 +168,7 @@ function AuthGuard() {
 
   if (!user && !isPublic) return null;
 
-  if (isPublic || isOnboarding) {
+  if (isPublic) {
     return <Outlet />;
   }
 
