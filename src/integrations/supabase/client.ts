@@ -8,12 +8,12 @@ function createSupabaseClient() {
   const SUPABASE_URL =
     import.meta.env.VITE_SUPABASE_URL ||
     process.env.SUPABASE_URL ||
-    "https://haeulonsftedrdgsxqpn.supabase.co";
+    "https://vvelfppyvrtmwvuauwzc.supabase.co";
 
   const SUPABASE_PUBLISHABLE_KEY =
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
     process.env.SUPABASE_PUBLISHABLE_KEY ||
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZXVsb25zZnRlZHJkZ3N4cXBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzgzMjUsImV4cCI6MjA5NjM1NDMyNX0.tlFjVHg4Fp-fBjXq3ojlBDm5UJJbCjqexFUZd3Y9Y1w";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2ZWxmcHB5dnJ0bXd2dWF1d3pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3Nzg0MjMsImV4cCI6MjA5NjM1NDQyM30.iFmHuwIia69M12RHSgjLEPcwjfI4B_6CuPlhp-umoao";
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
