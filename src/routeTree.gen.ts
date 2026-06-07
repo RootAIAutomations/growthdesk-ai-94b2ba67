@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OutreachRouteImport } from './routes/outreach'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as FollowUpsRouteImport } from './routes/follow-ups'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -26,6 +27,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const OutreachRoute = OutreachRouteImport.update({
   id: '/outreach',
   path: '/outreach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarRoute
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
+  '/login': typeof LoginRoute
   '/outreach': typeof OutreachRoute
   '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarRoute
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
+  '/login': typeof LoginRoute
   '/outreach': typeof OutreachRoute
   '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
+  '/login': typeof LoginRoute
   '/outreach': typeof OutreachRoute
   '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/follow-ups'
     | '/library'
+    | '/login'
     | '/outreach'
     | '/settings'
     | '/clients/$id'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/follow-ups'
     | '/library'
+    | '/login'
     | '/outreach'
     | '/settings'
     | '/clients/$id'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/follow-ups'
     | '/library'
+    | '/login'
     | '/outreach'
     | '/settings'
     | '/clients/$id'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   FollowUpsRoute: typeof FollowUpsRoute
   LibraryRoute: typeof LibraryRoute
+  LoginRoute: typeof LoginRoute
   OutreachRoute: typeof OutreachRoute
   SettingsRoute: typeof SettingsRoute
   ClientsIdRoute: typeof ClientsIdRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/outreach'
       fullPath: '/outreach'
       preLoaderRoute: typeof OutreachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   FollowUpsRoute: FollowUpsRoute,
   LibraryRoute: LibraryRoute,
+  LoginRoute: LoginRoute,
   OutreachRoute: OutreachRoute,
   SettingsRoute: SettingsRoute,
   ClientsIdRoute: ClientsIdRoute,
@@ -208,13 +229,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
