@@ -22,7 +22,6 @@ export const Route = createFileRoute("/clients/$id")({
 
 function ClientDetail() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
   const qc = useQueryClient();
 
   const { data: client } = useQuery({
