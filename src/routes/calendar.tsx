@@ -60,7 +60,17 @@ function CalendarPage() {
         businessContext: getBusinessContext(),
       });
       if (!result.posts?.length) throw new Error("Automation did not return content posts.");
-      const posts = result.posts.map((p) => ({ ...p, topic: p.topic ?? "Content idea" }));
+      const posts = result.posts.map((p) => ({
+        content_date: p.content_date,
+        day_number: p.day_number ?? null,
+        topic: p.topic ?? "Content idea",
+        instagram_caption: p.instagram_caption ?? null,
+        linkedin_post: p.linkedin_post ?? null,
+        blog_opener: p.blog_opener ?? null,
+        video_script: (p as any).video_script ?? null,
+        tags: p.tags ?? [],
+        status: p.status ?? "Generated",
+      }));
       const { error } = await supabase.from("content_calendar").insert(posts);
       if (error) throw error;
     },
