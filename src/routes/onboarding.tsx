@@ -80,45 +80,52 @@ export default function OnboardingPage() {
   }
 
   async function handleStep1() {
+    // Validate first — show inline errors rather than disabling the button
+    if (!credentials.full_name.trim()) { setFieldError("Please enter your name."); return; }
+    if (!credentials.email.trim()) { setFieldError("Please enter your email."); return; }
+    if (credentials.password.length < 6) { setFieldError("Password must be at least 6 characters."); return; }
+
     setLoading(true);
     setFieldError(null);
+
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email: credentials.email,
+        email: credentials.email.trim(),
         password: credentials.password,
-        options: { data: { full_name: credentials.full_name } },
+        options: { data: { full_name: credentials.full_name.trim() } },
       });
 
       if (signUpError) {
-        // "User already registered" — offer to sign in instead
-        if (signUpError.message?.toLowerCase().includes("already registered") ||
-            signUpError.message?.toLowerCase().includes("already been registered")) {
+        if (
+          signUpError.message?.toLowerCase().includes("already registered") ||
+          signUpError.message?.toLowerCase().includes("already been registered")
+        ) {
           setFieldError("An account with this email already exists. Try signing in instead.");
-          setLoading(false);
           return;
         }
-        throw signUpError;
-      }
-
-      // Supabase sometimes returns a user but with an identities array of length 0
-      // when email confirmation is off but the email was previously used — treat as duplicate
-      if (data.user && data.user.identities?.length === 0) {
-        setFieldError("An account with this email already exists. Try signing in instead.");
-        setLoading(false);
+        setFieldError(signUpError.message || "Could not create account. Please try again.");
         return;
       }
 
-      // Auto sign in right after signup
+      // Supabase returns identities: [] for duplicate emails when confirm email is OFF
+      if (data.user && data.user.identities?.length === 0) {
+        setFieldError("An account with this email already exists. Try signing in instead.");
+        return;
+      }
+
+      // Auto sign in immediately after signup
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
+        email: credentials.email.trim(),
         password: credentials.password,
       });
-      if (signInError) throw signInError;
+      if (signInError) {
+        setFieldError(signInError.message || "Account created but sign-in failed. Please sign in manually.");
+        return;
+      }
 
       setStep(2);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Could not create account. Please try again.";
-      setFieldError(msg);
+      setFieldError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -385,7 +392,7 @@ export default function OnboardingPage() {
 
             <button
               onClick={handleNext}
-              disabled={!canProceed() || loading}
+              disabled={loading || (step > 1 && !canProceed())}
               className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {loading ? (
