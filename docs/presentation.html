@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GrowthDesk AI — Capstone Project 04</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --border: #2a2a35;
+    --accent: #7c6ef7;
+    --accent2: #4fa8ff;
+    --green: #34d399;
+    --text: #f0f0f5;
+    --muted: #8b8ba8;
+    --slide-w: 960px;
+    --slide-h: 540px;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #07070a;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  #deck {
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #stage {
+    width: var(--slide-w);
+    height: var(--slide-h);
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.8), 0 0 0 1px var(--border);
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    padding: 48px 56px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+  .slide.out {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+
+  /* NAV */
+  #nav {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(24,24,31,0.95);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 10px 20px;
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  #nav button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  #nav button:hover { background: var(--border); border-color: var(--accent); }
+  #counter { color: var(--muted); font-size: 13px; min-width: 56px; text-align: center; }
+  .dots { display: flex; gap: 6px; }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .dot.active { background: var(--accent); transform: scale(1.4); }
+
+  /* SHARED LAYOUT */
+  .label {
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h1 { font-size: 48px; font-weight: 800; line-height: 1.1; }
+  h2 { font-size: 30px; font-weight: 700; margin-bottom: 24px; }
+  h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  p, li { font-size: 15px; line-height: 1.65; color: #ccc; }
+  ul { list-style: none; }
+  ul li::before { content: "→ "; color: var(--accent); font-weight: 700; }
+
+  .row { display: flex; gap: 20px; flex: 1; }
+  .col { flex: 1; display: flex; flex-direction: column; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    flex: 1;
+  }
+  .card.accent { border-color: var(--accent); }
+  .pill {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    background: rgba(124,110,247,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(124,110,247,0.3);
+    margin: 3px 3px 3px 0;
+  }
+  .pill.green { background: rgba(52,211,153,0.1); color: var(--green); border-color: rgba(52,211,153,0.3); }
+  .pill.blue { background: rgba(79,168,255,0.1); color: var(--accent2); border-color: rgba(79,168,255,0.3); }
+
+  .check { color: var(--green); margin-right: 6px; }
+  .divider { width: 48px; height: 3px; background: var(--accent); border-radius: 2px; margin: 12px 0 20px; }
+
+  /* GRADIENT BG */
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.25;
+    pointer-events: none;
+  }
+
+  /* ── SLIDE 1: TITLE ── */
+  #s1 { justify-content: center; }
+  #s1 .glow1 { width: 400px; height: 400px; background: var(--accent); top: -100px; right: -80px; }
+  #s1 .glow2 { width: 300px; height: 300px; background: var(--accent2); bottom: -60px; left: -60px; }
+  #s1 .tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(124,110,247,0.12);
+    border: 1px solid rgba(124,110,247,0.3);
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 12px; color: var(--accent); font-weight: 600;
+    margin-bottom: 20px;
+  }
+  #s1 h1 { font-size: 52px; margin-bottom: 10px; }
+  #s1 h1 span { color: var(--accent); }
+  #s1 .sub { font-size: 17px; color: var(--muted); margin-bottom: 28px; max-width: 500px; }
+  #s1 .meta { font-size: 13px; color: var(--muted); }
+  #s1 .meta strong { color: var(--text); }
+  #s1 .chips { display: flex; gap: 10px; margin-top: 28px; }
+  #s1 .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px; color: var(--muted);
+  }
+
+  /* ── SLIDE 2: PROBLEM ── */
+  #s2 .big-pain {
+    font-size: 22px;
+    font-style: italic;
+    color: #ddd;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+    padding-left: 20px;
+    margin: 20px 0;
+  }
+
+  /* ── SLIDE 3: SOLUTION ── */
+  #s3 .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+  }
+  #s3 .feat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  #s3 .feat .icon { font-size: 22px; }
+  #s3 .feat h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  #s3 .feat p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── SLIDE 4: ARCHITECTURE ── */
+  #s4 .arch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    justify-content: center;
+  }
+  #s4 .arch-row { display: flex; gap: 12px; align-items: center; justify-content: center; }
+  #s4 .arch-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 600;
+    text-align: center;
+    min-width: 140px;
+  }
+  #s4 .arch-box.main { border-color: var(--accent); color: var(--accent); }
+  #s4 .arch-box.green { border-color: var(--green); color: var(--green); }
+  #s4 .arch-box.blue { border-color: var(--accent2); color: var(--accent2); }
+  #s4 .arrow { color: var(--muted); font-size: 18px; }
+  #s4 .arch-sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 400; }
+
+  /* ── SLIDE 5: AI WORKFLOWS ── */
+  #s5 .wf-list { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  #s5 .wf {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  #s5 .wf-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(124,110,247,0.15);
+    border: 1px solid var(--accent);
+    color: var(--accent); font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #s5 .wf-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  #s5 .wf-flow { font-size: 12px; color: var(--muted); }
+  #s5 .wf-flow span { color: var(--accent2); }
+
+  /* ── SLIDE 6: STRETCH ── */
+  #s6 .stretch-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; flex: 1; }
+  #s6 .stretch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #s6 .stretch-card.done { border-color: var(--green); }
+  #s6 .stretch-icon { font-size: 28px; }
+  #s6 .stretch-title { font-size: 14px; font-weight: 700; }
+  #s6 .stretch-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  #s6 .badge-done {
+    display: inline-block;
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.3);
+    color: var(--green);
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    padding: 2px 10px;
+    margin-top: auto;
+  }
+
+  /* ── SLIDE 7: DEMO ── */
+  #s7 { justify-content: center; align-items: center; text-align: center; }
+  #s7 .glow1 { width: 500px; height: 500px; background: var(--accent); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+  #s7 .url-box {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 28px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 20px 0;
+    display: inline-block;
+  }
+  #s7 .steps {
+    display: flex; gap: 12px; justify-content: center;
+    margin-top: 16px; flex-wrap: wrap;
+  }
+  #s7 .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px; color: var(--muted);
+  }
+  #s7 .step strong { color: var(--text); display: block; font-size: 13px; }
+
+  /* ── SLIDE 8: NEXT ── */
+  #s8 .two-col { display: flex; gap: 20px; flex: 1; }
+  #s8 .next-list { flex: 1; }
+  #s8 .next-item {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  #s8 .next-item:last-child { border-bottom: none; }
+  #s8 .next-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(124,110,247,0.15);
+    border: 1px solid var(--accent);
+    color: var(--accent); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  #s8 .next-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  #s8 .next-desc { font-size: 12px; color: var(--muted); }
+
+  #s8 .github-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    width: 220px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #s8 .github-card h4 { font-size: 14px; font-weight: 700; }
+  #s8 .github-card p { font-size: 12px; color: var(--muted); }
+  #s8 .github-card .link { color: var(--accent2); font-size: 12px; word-break: break-all; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+  <div id="stage">
+
+    <!-- SLIDE 1: TITLE -->
+    <div class="slide active" id="s1">
+      <div class="glow glow1"></div>
+      <div class="glow glow2"></div>
+      <div class="tag">📋 Capstone Project 04 · Service Business / SMB</div>
+      <h1>GrowthDesk <span>AI</span></h1>
+      <p class="sub">The AI-powered command centre for solo service providers — clients, outreach, content, and follow-ups in one place.</p>
+      <div class="chips">
+        <div class="chip">⚡ Lovable + TanStack</div>
+        <div class="chip">🗄️ Supabase</div>
+        <div class="chip">🤖 n8n + OpenAI</div>
+        <div class="chip">☁️ Cloudinary</div>
+      </div>
+      <div class="meta" style="margin-top:auto">
+        <strong>Vikram Hora</strong> · IIT Roorkee × MASAI · New Age Software Engineering · 2026
+      </div>
+    </div>
+
+    <!-- SLIDE 2: PROBLEM -->
+    <div class="slide" id="s2">
+      <div class="label">The Problem</div>
+      <h2>Solo service providers are drowning in admin</h2>
+      <p class="big-pain">"I juggle WhatsApp, Gmail, Notion, a spreadsheet, and an Instagram scheduler — just to run my freelance business."</p>
+      <div class="row">
+        <div class="col">
+          <div class="card">
+            <h3>😰 Before GrowthDesk</h3>
+            <ul style="margin-top:10px">
+              <li style="margin-bottom:8px">Client notes scattered across 5 apps</li>
+              <li style="margin-bottom:8px">Writing outreach messages from scratch every time</li>
+              <li style="margin-bottom:8px">Forgetting to follow up with warm leads</li>
+              <li style="margin-bottom:8px">No time to plan social content consistently</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card accent">
+            <h3>✅ After GrowthDesk</h3>
+            <ul style="margin-top:10px">
+              <li style="margin-bottom:8px">One dashboard for all clients + history</li>
+              <li style="margin-bottom:8px">AI generates personalised outreach in seconds</li>
+              <li style="margin-bottom:8px">Automatic follow-up reminders</li>
+              <li style="margin-bottom:8px">AI-written 7-day content calendar</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: SOLUTION / FEATURES -->
+    <div class="slide" id="s3">
+      <div class="label">The Solution</div>
+      <h2>Everything a solo provider needs — in one AI hub</h2>
+      <div class="feature-grid">
+        <div class="feat">
+          <div class="icon">👥</div>
+          <div>
+            <h4>Client CRM</h4>
+            <p>Add clients with tags, status, notes, last contact date. Track everything in one place.</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">✍️</div>
+          <div>
+            <h4>AI Outreach Drafts</h4>
+            <p>One click generates personalised WhatsApp, Email & LinkedIn drafts using client context.</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">📅</div>
+          <div>
+            <h4>Content Calendar</h4>
+            <p>AI generates a 7-day plan — Instagram captions, LinkedIn posts, blog openers.</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">⏰</div>
+          <div>
+            <h4>Follow-Up Reminders</h4>
+            <p>Dashboard flags clients not contacted in N days. Never let a warm lead go cold.</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">💬</div>
+          <div>
+            <h4>Conversation Log</h4>
+            <p>Log every interaction by channel. Voice mic fills notes hands-free via Web Speech API.</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">📚</div>
+          <div>
+            <h4>Content Library</h4>
+            <p>Save your best posts, reuse them. Search and filter by platform or tag.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: ARCHITECTURE -->
+    <div class="slide" id="s4">
+      <div class="label">Architecture</div>
+      <h2>How it's built</h2>
+      <div class="arch">
+        <div class="arch-row">
+          <div class="arch-box main">
+            Lovable Frontend
+            <div class="arch-sub">TanStack Start · React 19 · Tailwind</div>
+          </div>
+        </div>
+        <div class="arrow">↕</div>
+        <div class="arch-row">
+          <div class="arch-box main">
+            Supabase
+            <div class="arch-sub">PostgreSQL · Auth · RLS · 7 tables</div>
+          </div>
+        </div>
+        <div class="arrow">↕</div>
+        <div class="arch-row">
+          <div class="arch-box main">
+            n8n (Self-hosted)
+            <div class="arch-sub">4 AI workflows · automation.mavops.co.uk</div>
+          </div>
+        </div>
+        <div class="arrow">↕</div>
+        <div class="arch-row" style="gap:20px">
+          <div class="arch-box green">
+            OpenAI
+            <div class="arch-sub">GPT-4o-mini</div>
+          </div>
+          <div class="arch-box green">
+            DALL-E 3
+            <div class="arch-sub">Image generation</div>
+          </div>
+          <div class="arch-box blue">
+            Cloudinary
+            <div class="arch-sub">Image storage</div>
+          </div>
+          <div class="arch-box blue">
+            SMTP
+            <div class="arch-sub">Email delivery</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: AI WORKFLOWS -->
+    <div class="slide" id="s5">
+      <div class="label">AI Workflows (n8n)</div>
+      <h2>Four intelligent automations</h2>
+      <div class="wf-list">
+        <div class="wf">
+          <div class="wf-num">1</div>
+          <div>
+            <div class="wf-title">Outreach Draft Generator</div>
+            <div class="wf-flow">Client data + history → <span>GPT-4o-mini</span> → WhatsApp + Email + LinkedIn drafts simultaneously</div>
+          </div>
+          <div style="margin-left:auto"><span class="pill green">Multi-channel</span></div>
+        </div>
+        <div class="wf">
+          <div class="wf-num">2</div>
+          <div>
+            <div class="wf-title">Content Calendar Generator</div>
+            <div class="wf-flow">Business context → <span>GPT-4o-mini</span> → 7 posts × 3 formats (Instagram · LinkedIn · Blog)</div>
+          </div>
+          <div style="margin-left:auto"><span class="pill">7-day plan</span></div>
+        </div>
+        <div class="wf">
+          <div class="wf-num">3</div>
+          <div>
+            <div class="wf-title">AI Image Generation</div>
+            <div class="wf-flow">Post topic → <span>DALL-E 3</span> → Cloudinary upload → image shown inline in calendar</div>
+          </div>
+          <div style="margin-left:auto"><span class="pill blue">DALL-E 3</span></div>
+        </div>
+        <div class="wf">
+          <div class="wf-num">4</div>
+          <div>
+            <div class="wf-title">Auto Email Sender</div>
+            <div class="wf-flow">Email draft → <span>n8n SMTP</span> → delivered to client inbox with one click</div>
+          </div>
+          <div style="margin-left:auto"><span class="pill blue">SMTP</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: STRETCH FEATURES -->
+    <div class="slide" id="s6">
+      <div class="label">Open-Ended Stretch</div>
+      <h2>All 3 stretch goals — completed</h2>
+      <div class="stretch-grid">
+        <div class="stretch-card done">
+          <div class="stretch-icon">📧</div>
+          <div class="stretch-title">Auto-send via Email</div>
+          <div class="stretch-desc">n8n SMTP workflow. "Send Email" button on email drafts delivers to client inbox directly from the app.</div>
+          <span class="badge-done">✓ Done</span>
+        </div>
+        <div class="stretch-card done">
+          <div class="stretch-icon">🖼️</div>
+          <div class="stretch-title">AI Image Generation</div>
+          <div class="stretch-desc">DALL-E 3 via n8n generates social post images. Uploaded to Cloudinary and shown inside the content calendar.</div>
+          <span class="badge-done">✓ Done</span>
+        </div>
+        <div class="stretch-card done">
+          <div class="stretch-icon">🎤</div>
+          <div class="stretch-title">Voice Transcription</div>
+          <div class="stretch-desc">Browser Web Speech API mic button in conversation logger. Speak your notes — transcribed and filled in real-time.</div>
+          <span class="badge-done">✓ Done</span>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--muted);margin-right:4px">Beyond spec:</span>
+        <span class="pill">Multi-channel outreach (3 drafts at once)</span>
+        <span class="pill">4-step onboarding wizard</span>
+        <span class="pill">Server-side auth validation</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: LIVE DEMO -->
+    <div class="slide" id="s7">
+      <div class="glow glow1" style="opacity:0.12"></div>
+      <div class="label">Live App</div>
+      <h2 style="text-align:center">Try it now</h2>
+      <div class="url-box">growthdesk-ai-94b2ba67.lovable.app</div>
+      <p style="color:var(--muted);font-size:14px">Open in incognito · sign up · explore</p>
+      <div class="steps">
+        <div class="step"><strong>1. Sign Up</strong>Complete onboarding</div>
+        <div class="step"><strong>2. Add Client</strong>Fill notes + tags</div>
+        <div class="step"><strong>3. Generate Draft</strong>3 channels at once</div>
+        <div class="step"><strong>4. Calendar</strong>7-day AI content plan</div>
+        <div class="step"><strong>5. Image</strong>DALL-E 3 post image</div>
+        <div class="step"><strong>6. Send Email</strong>One-click delivery</div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:center">
+        <span class="pill green">GitHub: RootAIAutomations/growthdesk-ai-94b2ba67</span>
+        <span class="pill">4 n8n workflows in /backend</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: WHAT'S NEXT -->
+    <div class="slide" id="s8">
+      <div class="label">What's Next</div>
+      <h2>Roadmap & reflections</h2>
+      <div class="two-col">
+        <div class="next-list">
+          <div class="next-item">
+            <div class="next-num">1</div>
+            <div>
+              <div class="next-title">WhatsApp Business API</div>
+              <div class="next-desc">Send WhatsApp messages directly from the app — currently opens wa.me link</div>
+            </div>
+          </div>
+          <div class="next-item">
+            <div class="next-num">2</div>
+            <div>
+              <div class="next-title">Multi-user Teams</div>
+              <div class="next-desc">Share clients and drafts across a small agency or team with role-based access</div>
+            </div>
+          </div>
+          <div class="next-item">
+            <div class="next-num">3</div>
+            <div>
+              <div class="next-title">Instagram Direct Publish</div>
+              <div class="next-desc">Auto-publish calendar posts to Instagram via Meta Graph API</div>
+            </div>
+          </div>
+          <div class="next-item">
+            <div class="next-num">4</div>
+            <div>
+              <div class="next-title">Analytics Dashboard</div>
+              <div class="next-desc">Track open rates, reply rates, content engagement across channels</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="github-card">
+            <h4>🔗 Submission Links</h4>
+            <p>Live App</p>
+            <div class="link">growthdesk-ai-94b2ba67.lovable.app</div>
+            <p style="margin-top:8px">GitHub Repo</p>
+            <div class="link">RootAIAutomations/<br/>growthdesk-ai-94b2ba67</div>
+            <p style="margin-top:8px">n8n Workflows</p>
+            <div class="link">/backend/*.json (4 files)</div>
+          </div>
+          <div class="card" style="text-align:center;padding:14px">
+            <div style="font-size:28px;margin-bottom:6px">🎓</div>
+            <div style="font-size:13px;font-weight:600">IIT Roorkee × MASAI</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px">New Age Software Engineering<br/>Capstone Project 04</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /stage -->
+</div><!-- /deck -->
+
+<!-- NAV -->
+<div id="nav">
+  <button id="prev">‹</button>
+  <div class="dots" id="dots"></div>
+  <span id="counter">1 / 8</span>
+  <button id="next">›</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let cur = 0;
+
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => go(i));
+    dotsEl.appendChild(d);
+  });
+
+  function go(next) {
+    if (next < 0 || next >= total) return;
+    slides[cur].classList.remove('active');
+    slides[cur].classList.add('out');
+    setTimeout(() => slides[cur].classList.remove('out'), 400);
+    cur = next;
+    slides[cur].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+    counter.textContent = (cur + 1) + ' / ' + total;
+  }
+
+  document.getElementById('prev').addEventListener('click', () => go(cur - 1));
+  document.getElementById('next').addEventListener('click', () => go(cur + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(cur - 1); }
+  });
+</script>
+</body>
+</html>
