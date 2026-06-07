@@ -74,6 +74,10 @@ function FollowUpsPage() {
     const d = parseISO(i.due_date);
     return !isToday(d) && !isBefore(d, today) && isWithinInterval(d, { start: addDays(today, 1), end: weekEnd });
   });
+  const later = active.filter((i) => {
+    const d = parseISO(i.due_date);
+    return !isBefore(d, today) && !isToday(d) && !isWithinInterval(d, { start: addDays(today, 1), end: weekEnd });
+  });
   const completed = items.filter((i) => i.status === "Completed").slice(0, 10);
 
   return (
@@ -106,6 +110,7 @@ function FollowUpsPage() {
         <Section title="Overdue" icon={AlertTriangle} color="text-destructive" items={overdue} onToggle={(f) => toggle.mutate(f)} />
         <Section title="Due today" icon={CalendarClock} color="text-warning-foreground" items={dueToday} onToggle={(f) => toggle.mutate(f)} />
         <Section title="Due this week" icon={CalendarRange} color="text-primary" items={dueWeek} onToggle={(f) => toggle.mutate(f)} />
+        <Section title="Later" icon={CalendarRange} color="text-muted-foreground" items={later} onToggle={(f) => toggle.mutate(f)} />
         {completed.length > 0 && <Section title="Recently completed" icon={CalendarClock} color="text-success" items={completed} onToggle={(f) => toggle.mutate(f)} />}
       </div>
     </div>

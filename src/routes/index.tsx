@@ -19,8 +19,8 @@ function Dashboard() {
       const [clients, followUps, drafts, content] = await Promise.all([
         supabase.from("clients").select("*").order("updated_at", { ascending: false }),
         supabase.from("follow_up_schedule").select("*, clients(name)").neq("status", "Completed").order("due_date"),
-        supabase.from("outreach_drafts").select("*, clients(name)").order("created_at", { ascending: false }).limit(5),
-        supabase.from("content_calendar").select("*").order("created_at", { ascending: false }).limit(5),
+        supabase.from("outreach_drafts").select("*, clients(name)").order("created_at", { ascending: false }),
+        supabase.from("content_calendar").select("*").order("created_at", { ascending: false }),
       ]);
       return {
         clients: (clients.data ?? []) as Client[],
@@ -103,7 +103,7 @@ function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             {(data?.drafts ?? []).length === 0 && <Empty>No drafts yet.</Empty>}
-            {(data?.drafts ?? []).map((d) => (
+            {(data?.drafts ?? []).slice(0, 5).map((d) => (
               <div key={d.id} className="p-3 rounded-md border">
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-sm font-medium">{d.clients?.name ?? "Untitled"}</div>
@@ -122,7 +122,7 @@ function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             {(data?.content ?? []).length === 0 && <Empty>No content scheduled yet.</Empty>}
-            {(data?.content ?? []).map((c) => (
+            {(data?.content ?? []).slice(0, 5).map((c) => (
               <div key={c.id} className="flex items-center justify-between p-3 rounded-md border">
                 <div>
                   <div className="font-medium text-sm">{c.topic || "Content idea"}</div>

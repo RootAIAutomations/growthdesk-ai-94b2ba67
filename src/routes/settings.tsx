@@ -19,7 +19,7 @@ function SettingsPage() {
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Workspace</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
             <Row label="Product" value="GrowthDesk AI" />
-            <Row label="Workspace" value={<Badge>Live workspace</Badge>} />
+            <Row label="Status" value={<Badge>Live workspace</Badge>} />
             <Row label="Account type" value="Solo business" />
           </CardContent>
         </Card>
