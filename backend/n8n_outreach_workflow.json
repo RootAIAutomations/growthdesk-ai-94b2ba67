@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst client = body.client || {};\nconst messages = body.messages || [];\nconst followUps = body.followUps || [];\nconst businessContext = body.businessContext || 'A solo service provider';\n\nconst recentMessages = messages.slice(0, 5).map(m => `- [${m.direction}] ${m.message_type}: ${m.summary || m.message}`).join('\\n');\nconst pendingFollowUps = followUps.filter(f => f.status !== 'Completed').map(f => `- ${f.title} (due ${f.due_date})`).join('\\n');\n\nconst prompt = `You are writing a personalised outreach message on behalf of a service provider.\n\nAbout the sender's business:\n${businessContext}\n\nClient you are reaching out to:\n- Name: ${client.name}\n- Business type: ${client.business_type || 'Not specified'}\n- Tags: ${(client.tags || []).join(', ') || 'None'}\n- Status: ${client.status}\n- Notes: ${client.notes || 'None'}\n- Last contacted: ${client.last_contact_date || 'Not recently'}\n\nRecent conversation history:\n${recentMessages || 'No previous conversations'}\n\nPending follow-ups:\n${pendingFollowUps || 'None'}\n\nWrite a WhatsApp message from the sender to this client. The message must:\n1. Feel like it was written by a real person, not a template\n2. Reference something specific about this client (their notes, business type, or last conversation)\n3. Have a clear but soft call-to-action\n4. Be under 120 words\n5. Match the sender's business context — the language and offer should make sense for what they do\n\nReturn ONLY the message text. No subject line, no formatting, no quotation marks.`;\n\nreturn [{ json: { prompt, client_name: client.name } }];"
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst client = body.client || {};\nconst messages = body.messages || [];\nconst followUps = body.followUps || [];\nconst businessContext = body.businessContext || 'A solo service provider';\n\nconst recentMessages = messages.slice(0, 5).map(m => `- [${m.direction}] ${m.message_type}: ${m.summary || m.message}`).join('\\n');\nconst pendingFollowUps = followUps.filter(f => f.status !== 'Completed').map(f => `- ${f.title} (due ${f.due_date})`).join('\\n');\n\nconst prompt = `You are writing personalised outreach messages on behalf of a service provider.\\n\\nAbout the sender's business:\\n${businessContext}\\n\\nClient you are reaching out to:\\n- Name: ${client.name}\\n- Business type: ${client.business_type || 'Not specified'}\\n- Tags: ${(client.tags || []).join(', ') || 'None'}\\n- Status: ${client.status}\\n- Notes: ${client.notes || 'None'}\\n- Last contacted: ${client.last_contact_date || 'Not recently'}\\n\\nRecent conversation history:\\n${recentMessages || 'No previous conversations'}\\n\\nPending follow-ups:\\n${pendingFollowUps || 'None'}\\n\\nWrite THREE outreach messages for this client - one for WhatsApp, one for Email, and one for LinkedIn. Each must:\\n1. Feel like it was written by a real person, not a template\\n2. Reference something specific about this client (their notes, business type, or last conversation)\\n3. Have a clear but soft call-to-action\\n4. Match the correct tone for its channel:\\n   - WhatsApp: casual, conversational, under 120 words\\n   - Email: professional but warm, up to 200 words, suitable as an email body (no subject line)\\n   - LinkedIn: professional and concise, under 150 words, suitable for a LinkedIn DM\\n5. Match the sender's business context\\n\\nReturn valid JSON only, no markdown, no code blocks. Use exactly:\\n{\\\"drafts\\\":[{\\\"channel\\\":\\\"WhatsApp\\\",\\\"draft_text\\\":\\\"...\\\"},{\\\"channel\\\":\\\"Email\\\",\\\"draft_text\\\":\\\"...\\\"},{\\\"channel\\\":\\\"LinkedIn\\\",\\\"draft_text\\\":\\\"...\\\"}]}`;\n\nreturn [{ json: { prompt, client_name: client.name } }];"
       },
       "id": "prepare-prompt",
       "name": "Prepare Prompt",
@@ -40,7 +40,7 @@
         },
         "options": {
           "temperature": 0.75,
-          "maxTokens": 350
+          "maxTokens": 900
         }
       },
       "id": "openai-call",
@@ -56,7 +56,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const draft = $input.first().json.message?.content || $input.first().json.content || '';\nreturn [{\n  json: {\n    draft_text: draft.trim(),\n    channel: 'WhatsApp',\n    status: 'Draft'\n  }\n}];"
+        "jsCode": "const raw = $input.first().json.message?.content || $input.first().json.content || '';\n\n// Strip markdown code blocks if GPT wraps the JSON\nconst cleaned = raw.replace(/^```(?:json)?\\n?/, '').replace(/\\n?```$/, '').trim();\n\nlet drafts;\ntry {\n  const parsed = JSON.parse(cleaned);\n  drafts = parsed.drafts || parsed;\n} catch(e) {\n  // Fallback: treat raw as a single WhatsApp draft\n  drafts = [{ channel: 'WhatsApp', draft_text: raw.trim() }];\n}\n\nif (!Array.isArray(drafts) || drafts.length === 0) {\n  drafts = [{ channel: 'WhatsApp', draft_text: raw.trim() }];\n}\n\nreturn [{ json: { drafts, status: 'Draft' } }];"
       },
       "id": "format-response",
       "name": "Format Response",

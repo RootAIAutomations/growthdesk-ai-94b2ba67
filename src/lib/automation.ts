@@ -26,7 +26,16 @@ type ImagePayload = {
   businessContext?: string;
 };
 
+type OutreachDraft = {
+  channel: string;
+  draft_text: string;
+  edited_text?: string | null;
+};
+
 type OutreachResponse = {
+  // Multi-channel response (new)
+  drafts?: OutreachDraft[];
+  // Legacy single-draft fields
   draft_text?: string;
   edited_text?: string | null;
   channel?: string;
@@ -66,7 +75,9 @@ async function postWebhook<TPayload, TResponse>(url: string, payload: TPayload):
   });
 
   const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
+  const parsed = text ? JSON.parse(text) : null;
+  // n8n sometimes wraps the response in an array — unwrap it
+  const body = Array.isArray(parsed) ? parsed[0] : parsed;
 
   if (!response.ok) {
     const message = body?.message || body?.error || `Automation request failed with status ${response.status}`;

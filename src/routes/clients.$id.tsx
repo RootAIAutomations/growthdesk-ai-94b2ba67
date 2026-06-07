@@ -105,10 +105,27 @@ function ClientDetail() {
 
       if (result.saved_draft_id) return;
 
-      const draftText = result.draft_text || result.edited_text;
-      if (!draftText) throw new Error("Automation did not return a draft.");
-
       const user_id = await getUserId();
+
+      // Multi-channel response: insert all drafts at once
+      if (result.drafts && result.drafts.length > 0) {
+        const rows = result.drafts.map((d) => ({
+          client_id: id,
+          channel: d.channel || "WhatsApp",
+          draft_text: d.draft_text,
+          edited_text: d.edited_text || null,
+          status: "Draft",
+          prompt_context: null,
+          user_id,
+        }));
+        const { error } = await supabase.from("outreach_drafts").insert(rows);
+        if (error) throw error;
+        return result.drafts.length;
+      }
+
+      // Legacy single-draft fallback
+      const draftText = result.draft_text || result.edited_text;
+      if (!draftText) throw new Error("No draft. Response: " + JSON.stringify(result));
       const { error } = await supabase.from("outreach_drafts").insert({
         client_id: id,
         channel: result.channel || "WhatsApp",
@@ -119,11 +136,13 @@ function ClientDetail() {
         user_id,
       });
       if (error) throw error;
+      return 1;
     },
-    onSuccess: () => {
+    onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ["drafts", id] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
-      toast.success("Outreach draft generated");
+      const label = count && count > 1 ? `${count} drafts generated (WhatsApp, Email, LinkedIn)` : "Outreach draft generated";
+      toast.success(label);
       setActiveTab("outreach");
     },
     onError: (e: any) => toast.error(e.message || "Could not generate outreach draft"),
