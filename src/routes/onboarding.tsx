@@ -60,6 +60,16 @@ export default function OnboardingPage() {
       data: { ...form, onboarding_complete: true },
     });
     if (error) {
+      // If the session is stale or the user no longer exists, sign out cleanly
+      const isAuthError = error.message?.toLowerCase().includes("jwt") ||
+        error.message?.toLowerCase().includes("session") ||
+        error.message?.toLowerCase().includes("user") ||
+        error.status === 401 || error.status === 403;
+      if (isAuthError) {
+        await supabase.auth.signOut();
+        navigate({ to: "/login" });
+        return;
+      }
       toast.error("Could not save your profile. Please try again.");
       setLoading(false);
       return;

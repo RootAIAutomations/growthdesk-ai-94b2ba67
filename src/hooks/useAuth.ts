@@ -14,10 +14,20 @@ export function useAuth(): AuthState {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Use getUser() which verifies the token server-side.
+    // getSession() reads from local storage and will return a "valid" session
+    // even for users that have been deleted from Supabase — getUser() catches that.
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error || !user) {
+        // Token is invalid or user no longer exists — clear the stale session
+        supabase.auth.signOut();
+        setUser(null);
+        setSession(null);
+      } else {
+        setUser(user);
+        // Still grab session for the token itself
+        supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+      }
       setLoading(false);
     });
 
