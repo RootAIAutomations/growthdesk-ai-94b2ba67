@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, CalendarDays, Sparkles, Copy, BookmarkPlus, Instagram, Linkedin, FileText, Trash2 } from "lucide-react";
+import { Plus, CalendarDays, Sparkles, Copy, BookmarkPlus, Instagram, Linkedin, FileText, Trash2, Video } from "lucide-react";
 import { format, parseISO, startOfWeek } from "date-fns";
 import { toast } from "sonner";
 import { supabase, type ContentItem } from "@/lib/db";
@@ -67,6 +67,7 @@ function CalendarPage() {
         instagram_caption: p.instagram_caption ?? null,
         linkedin_post: p.linkedin_post ?? null,
         blog_opener: p.blog_opener ?? null,
+        video_script: (p as any).video_script ?? null,
         tags: p.tags ?? [],
         status: p.status ?? "Generated",
       }));
@@ -188,6 +189,7 @@ function CalendarPage() {
                   {p.instagram_caption && <PlatformChip label="Instagram" color="bg-pink-500/10 text-pink-600" />}
                   {p.linkedin_post && <PlatformChip label="LinkedIn" color="bg-blue-600/10 text-blue-700" />}
                   {p.blog_opener && <PlatformChip label="Blog" color="bg-orange-500/10 text-orange-600" />}
+                  {(p as any).video_script && <PlatformChip label="Script" color="bg-purple-500/10 text-purple-600" />}
                 </div>
                 {(p.tags ?? []).length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -227,7 +229,7 @@ function CalendarPage() {
               </DialogHeader>
 
               <Tabs defaultValue={selected.instagram_caption ? "instagram" : selected.linkedin_post ? "linkedin" : "blog"}>
-                <TabsList className="grid grid-cols-3 w-full">
+                <TabsList className="grid grid-cols-4 w-full">
                   <TabsTrigger value="instagram" disabled={!selected.instagram_caption}>
                     <Instagram className="size-3.5 mr-1.5" /> Instagram
                   </TabsTrigger>
@@ -237,6 +239,9 @@ function CalendarPage() {
                   <TabsTrigger value="blog" disabled={!selected.blog_opener}>
                     <FileText className="size-3.5 mr-1.5" /> Blog
                   </TabsTrigger>
+                  <TabsTrigger value="video" disabled={!(selected as any).video_script}>
+                    <Video className="size-3.5 mr-1.5" /> Script
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="instagram" className="mt-4">
@@ -244,11 +249,11 @@ function CalendarPage() {
                     {selected.instagram_caption || "No Instagram caption."}
                   </div>
                   <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(selected.instagram_caption ?? ""); toast.success("Copied Instagram caption"); }}>
-                      <Copy className="size-3.5" /> Copy
+                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(selected.instagram_caption ?? ""); toast.success("Copied"); }}>
+                      <Copy className="size-3.5 mr-1.5" /> Copy
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => saveToLibrary.mutate({ item: selected, platform: "Instagram", content: selected.instagram_caption ?? "" })} disabled={saveToLibrary.isPending || !selected.instagram_caption}>
-                      <BookmarkPlus className="size-3.5" /> Save to Library
+                      <BookmarkPlus className="size-3.5 mr-1.5" /> Save to Library
                     </Button>
                   </div>
                 </TabsContent>
@@ -258,11 +263,11 @@ function CalendarPage() {
                     {selected.linkedin_post || "No LinkedIn post."}
                   </div>
                   <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(selected.linkedin_post ?? ""); toast.success("Copied LinkedIn post"); }}>
-                      <Copy className="size-3.5" /> Copy
+                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(selected.linkedin_post ?? ""); toast.success("Copied"); }}>
+                      <Copy className="size-3.5 mr-1.5" /> Copy
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => saveToLibrary.mutate({ item: selected, platform: "LinkedIn", content: selected.linkedin_post ?? "" })} disabled={saveToLibrary.isPending || !selected.linkedin_post}>
-                      <BookmarkPlus className="size-3.5" /> Save to Library
+                      <BookmarkPlus className="size-3.5 mr-1.5" /> Save to Library
                     </Button>
                   </div>
                 </TabsContent>
@@ -272,11 +277,25 @@ function CalendarPage() {
                     {selected.blog_opener || "No blog opener."}
                   </div>
                   <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(selected.blog_opener ?? ""); toast.success("Copied blog opener"); }}>
-                      <Copy className="size-3.5" /> Copy
+                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(selected.blog_opener ?? ""); toast.success("Copied"); }}>
+                      <Copy className="size-3.5 mr-1.5" /> Copy
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => saveToLibrary.mutate({ item: selected, platform: "Blog", content: selected.blog_opener ?? "" })} disabled={saveToLibrary.isPending || !selected.blog_opener}>
-                      <BookmarkPlus className="size-3.5" /> Save to Library
+                      <BookmarkPlus className="size-3.5 mr-1.5" /> Save to Library
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="video" className="mt-4">
+                  <div className="bg-muted/40 rounded-lg p-4 text-sm whitespace-pre-wrap leading-relaxed">
+                    {(selected as any).video_script || "No video script."}
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText((selected as any).video_script ?? ""); toast.success("Copied script"); }}>
+                      <Copy className="size-3.5 mr-1.5" /> Copy
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => saveToLibrary.mutate({ item: selected, platform: "Video", content: (selected as any).video_script ?? "" })} disabled={saveToLibrary.isPending || !(selected as any).video_script}>
+                      <BookmarkPlus className="size-3.5 mr-1.5" /> Save to Library
                     </Button>
                   </div>
                 </TabsContent>
