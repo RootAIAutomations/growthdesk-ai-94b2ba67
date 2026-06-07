@@ -76,6 +76,7 @@ function ClientDetail() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["messages", id] }); setMsgContent(""); toast.success("Message logged"); },
   });
 
+  const [activeTab, setActiveTab] = useState("conversation");
   const [task, setTask] = useState("");
   const [due, setDue] = useState(format(new Date(), "yyyy-MM-dd"));
   const addFollowUp = useMutation({
@@ -123,6 +124,7 @@ function ClientDetail() {
       qc.invalidateQueries({ queryKey: ["drafts", id] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Outreach draft generated");
+      setActiveTab("outreach");
     },
     onError: (e: any) => toast.error(e.message || "Could not generate outreach draft"),
   });
@@ -219,7 +221,7 @@ function ClientDetail() {
         </Card>
 
         <div className="lg:col-span-2">
-          <Tabs defaultValue="conversation">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-3 w-full">
               <TabsTrigger value="conversation">Conversation</TabsTrigger>
               <TabsTrigger value="followups">Follow-ups</TabsTrigger>
