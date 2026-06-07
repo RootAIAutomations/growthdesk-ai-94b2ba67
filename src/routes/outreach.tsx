@@ -46,8 +46,8 @@ function OutreachPage() {
                 </div>
                 <span className="text-xs text-muted-foreground">{format(parseISO(d.created_at), "MMM d, yyyy p")}</span>
               </div>
-              <p className="text-sm whitespace-pre-wrap mb-3">{d.edited_text || d.draft_text}</p>
-              <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(d.edited_text || d.draft_text); toast.success("Copied"); }}>
+              <p className="text-sm whitespace-pre-wrap mb-3">{d.content}</p>
+              <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(d.content); toast.success("Copied"); }}>
                 <Copy className="size-3.5" /> Copy
               </Button>
             </CardContent>

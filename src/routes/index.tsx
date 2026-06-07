@@ -18,7 +18,7 @@ function Dashboard() {
     queryFn: async () => {
       const [clients, followUps, drafts, content] = await Promise.all([
         supabase.from("clients").select("*").order("updated_at", { ascending: false }),
-        supabase.from("follow_up_schedule").select("*, clients(name)").neq("status", "Completed").order("due_date"),
+        supabase.from("follow_up_schedule").select("*, clients(name)").eq("completed", false).order("due_date"),
         supabase.from("outreach_drafts").select("*, clients(name)").order("created_at", { ascending: false }),
         supabase.from("content_calendar").select("*").order("created_at", { ascending: false }),
       ]);
@@ -87,7 +87,7 @@ function Dashboard() {
             {(data?.followUps ?? []).slice(0, 6).map((f) => (
               <div key={f.id} className="flex items-center justify-between p-3 rounded-md border">
                 <div>
-                  <div className="font-medium text-sm">{f.title}</div>
+                  <div className="font-medium text-sm">{f.task}</div>
                   <div className="text-xs text-muted-foreground">{f.clients?.name ?? "—"}</div>
                 </div>
                 <div className="text-xs text-muted-foreground">{format(parseISO(f.due_date), "MMM d")}</div>
@@ -109,7 +109,7 @@ function Dashboard() {
                   <div className="text-sm font-medium">{d.clients?.name ?? "Untitled"}</div>
                   <Badge variant="outline" className="text-xs">{d.channel}</Badge>
                 </div>
-                <div className="text-xs text-muted-foreground line-clamp-2">{d.edited_text || d.draft_text}</div>
+                <div className="text-xs text-muted-foreground line-clamp-2">{d.content}</div>
               </div>
             ))}
           </CardContent>
@@ -125,10 +125,10 @@ function Dashboard() {
             {(data?.content ?? []).slice(0, 5).map((c) => (
               <div key={c.id} className="flex items-center justify-between p-3 rounded-md border">
                 <div>
-                  <div className="font-medium text-sm">{c.topic || "Content idea"}</div>
-                  <div className="text-xs text-muted-foreground">Weekly content</div>
+                  <div className="font-medium text-sm">{c.title || "Content idea"}</div>
+                  <div className="text-xs text-muted-foreground">{c.platform || "Weekly content"}</div>
                 </div>
-                <div className="text-xs text-muted-foreground">{format(parseISO(c.content_date), "MMM d")}</div>
+                <div className="text-xs text-muted-foreground">{format(parseISO(c.scheduled_date), "MMM d")}</div>
               </div>
             ))}
           </CardContent>
