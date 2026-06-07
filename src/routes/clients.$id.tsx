@@ -14,6 +14,7 @@ import { ArrowLeft, Sparkles, Copy, MessageCircle, Send, Plus, Mail, Phone, Brie
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { supabase, statusColor, type Client, type Message, type FollowUp, type Outreach } from "@/lib/db";
+import { requestOutreachDraft } from "@/lib/automation";
 
 export const Route = createFileRoute("/clients/$id")({
   head: () => ({ meta: [{ title: "Client — GrowthDesk AI" }] }),
@@ -87,9 +88,34 @@ function ClientDetail() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["followups", id] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); },
   });
 
-  const placeholderDraft = () => {
-    toast.info("AI outreach is ready to connect", { description: "Connect your automation workflow to generate personalized drafts for this client." });
-  };
+  const generateDraft = useMutation({
+    mutationFn: async () => {
+      if (!client) throw new Error("Client is still loading.");
+
+      const result = await requestOutreachDraft({ client, messages, followUps });
+
+      if (result.saved_draft_id) return;
+
+      const draftText = result.draft_text || result.edited_text;
+      if (!draftText) throw new Error("Automation did not return a draft.");
+
+      const { error } = await supabase.from("outreach_drafts").insert({
+        client_id: id,
+        channel: result.channel || "WhatsApp",
+        draft_text: draftText,
+        edited_text: result.edited_text || null,
+        status: result.status || "Draft",
+        prompt_context: result.prompt_context || {},
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["drafts", id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Outreach draft generated");
+    },
+    onError: (e: any) => toast.error(e.message || "Could not generate outreach draft"),
+  });
   const copyDraft = (text?: string) => {
     if (text) navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
@@ -111,7 +137,9 @@ function ClientDetail() {
         description={client.business_type ?? undefined}
         actions={
           <>
-            <Button variant="outline" onClick={placeholderDraft}><Sparkles className="size-4" /> Generate Outreach Draft</Button>
+            <Button variant="outline" disabled={generateDraft.isPending} onClick={() => generateDraft.mutate()}>
+              <Sparkles className="size-4" /> {generateDraft.isPending ? "Generating..." : "Generate Outreach Draft"}
+            </Button>
             <Button variant="outline" onClick={() => copyDraft(drafts[0]?.edited_text || drafts[0]?.draft_text)}><Copy className="size-4" /> Copy Draft</Button>
             <Button onClick={openWhatsApp}><MessageCircle className="size-4" /> Open WhatsApp</Button>
           </>

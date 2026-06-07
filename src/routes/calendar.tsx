@@ -10,10 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, CalendarDays } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { Plus, CalendarDays, Sparkles } from "lucide-react";
+import { format, parseISO, startOfWeek } from "date-fns";
 import { toast } from "sonner";
 import { supabase, type ContentItem } from "@/lib/db";
+import { requestContentPlan } from "@/lib/automation";
 
 export const Route = createFileRoute("/calendar")({
   head: () => ({ meta: [{ title: "Content Calendar — GrowthDesk AI" }] }),
@@ -46,32 +47,58 @@ function CalendarPage() {
     },
   });
 
+  const generatePlan = useMutation({
+    mutationFn: async () => {
+      const weekStartDate = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+      const result = await requestContentPlan({
+        weekStartDate,
+        businessContext: "GrowthDesk AI helps solo service providers manage clients, follow-ups, outreach drafts, and content planning.",
+      });
+
+      if (!result.posts?.length) throw new Error("Automation did not return content posts.");
+
+      const { error } = await supabase.from("content_calendar").insert(result.posts);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["calendar"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Content plan generated");
+    },
+    onError: (e: any) => toast.error(e.message || "Could not generate content plan"),
+  });
+
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto">
       <PageHeader
         title="Content Calendar"
         description={`${data.length} posts`}
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="size-4" /> Schedule post</Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Schedule content</DialogTitle></DialogHeader>
-              <div className="space-y-3">
-                <div><Label className="text-xs">Topic</Label><Input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></div>
-                <div><Label className="text-xs">Date</Label><Input type="date" value={form.content_date} onChange={(e) => setForm({ ...form, content_date: e.target.value })} /></div>
-                <div><Label className="text-xs">Status</Label>
-                  <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{["Generated", "Saved", "Published", "Archived"].map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                  </Select>
+          <>
+            <Button variant="outline" disabled={generatePlan.isPending} onClick={() => generatePlan.mutate()}>
+              <Sparkles className="size-4" /> {generatePlan.isPending ? "Generating..." : "Generate 7-day plan"}
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild><Button><Plus className="size-4" /> Schedule post</Button></DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Schedule content</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <div><Label className="text-xs">Topic</Label><Input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></div>
+                  <div><Label className="text-xs">Date</Label><Input type="date" value={form.content_date} onChange={(e) => setForm({ ...form, content_date: e.target.value })} /></div>
+                  <div><Label className="text-xs">Status</Label>
+                    <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{["Generated", "Saved", "Published", "Archived"].map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label className="text-xs">Instagram caption</Label><Textarea rows={2} value={form.instagram_caption} onChange={(e) => setForm({ ...form, instagram_caption: e.target.value })} /></div>
+                  <div><Label className="text-xs">LinkedIn post</Label><Textarea rows={2} value={form.linkedin_post} onChange={(e) => setForm({ ...form, linkedin_post: e.target.value })} /></div>
+                  <div><Label className="text-xs">Blog opener</Label><Textarea rows={2} value={form.blog_opener} onChange={(e) => setForm({ ...form, blog_opener: e.target.value })} /></div>
+                  <div className="flex justify-end"><Button disabled={!form.topic} onClick={() => create.mutate()}>Schedule</Button></div>
                 </div>
-                <div><Label className="text-xs">Instagram caption</Label><Textarea rows={2} value={form.instagram_caption} onChange={(e) => setForm({ ...form, instagram_caption: e.target.value })} /></div>
-                <div><Label className="text-xs">LinkedIn post</Label><Textarea rows={2} value={form.linkedin_post} onChange={(e) => setForm({ ...form, linkedin_post: e.target.value })} /></div>
-                <div><Label className="text-xs">Blog opener</Label><Textarea rows={2} value={form.blog_opener} onChange={(e) => setForm({ ...form, blog_opener: e.target.value })} /></div>
-                <div className="flex justify-end"><Button disabled={!form.topic} onClick={() => create.mutate()}>Schedule</Button></div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </>
         }
       />
 
