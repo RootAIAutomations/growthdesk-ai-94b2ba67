@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as FollowUpsRouteImport } from './routes/follow-ups'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsIdRouteImport } from './routes/clients.$id'
@@ -23,6 +24,11 @@ const OutreachRoute = OutreachRouteImport.update({
 const FollowUpsRoute = FollowUpsRouteImport.update({
   id: '/follow-ups',
   path: '/follow-ups',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +49,7 @@ const ClientsIdRoute = ClientsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/calendar': typeof CalendarRoute
   '/follow-ups': typeof FollowUpsRoute
   '/outreach': typeof OutreachRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/calendar': typeof CalendarRoute
   '/follow-ups': typeof FollowUpsRoute
   '/outreach': typeof OutreachRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/calendar': typeof CalendarRoute
   '/follow-ups': typeof FollowUpsRoute
   '/outreach': typeof OutreachRoute
   '/clients/$id': typeof ClientsIdRoute
@@ -65,12 +74,25 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/follow-ups' | '/outreach' | '/clients/$id' | '/clients/'
+  fullPaths:
+    | '/'
+    | '/calendar'
+    | '/follow-ups'
+    | '/outreach'
+    | '/clients/$id'
+    | '/clients/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/follow-ups' | '/outreach' | '/clients/$id' | '/clients'
+  to:
+    | '/'
+    | '/calendar'
+    | '/follow-ups'
+    | '/outreach'
+    | '/clients/$id'
+    | '/clients'
   id:
     | '__root__'
     | '/'
+    | '/calendar'
     | '/follow-ups'
     | '/outreach'
     | '/clients/$id'
@@ -79,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CalendarRoute: typeof CalendarRoute
   FollowUpsRoute: typeof FollowUpsRoute
   OutreachRoute: typeof OutreachRoute
   ClientsIdRoute: typeof ClientsIdRoute
@@ -99,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/follow-ups'
       fullPath: '/follow-ups'
       preLoaderRoute: typeof FollowUpsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -127,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CalendarRoute: CalendarRoute,
   FollowUpsRoute: FollowUpsRoute,
   OutreachRoute: OutreachRoute,
   ClientsIdRoute: ClientsIdRoute,
