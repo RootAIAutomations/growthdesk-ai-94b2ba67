@@ -37,7 +37,7 @@ function ClientDetail() {
   const { data: messages = [] } = useQuery({
     queryKey: ["messages", id],
     queryFn: async () => {
-      const { data } = await supabase.from("message_log").select("*").eq("client_id", id).order("interaction_date", { ascending: false });
+      const { data } = await supabase.from("message_log").select("*").eq("client_id", id).order("sent_at", { ascending: false });
       return (data ?? []) as Message[];
     },
   });
@@ -60,10 +60,10 @@ function ClientDetail() {
 
   const [msgContent, setMsgContent] = useState("");
   const [msgChannel, setMsgChannel] = useState("WhatsApp");
-  const [msgDir, setMsgDir] = useState("Outbound");
+  const [msgDir, setMsgDir] = useState("outbound");
   const addMessage = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("message_log").insert({ client_id: id, message: msgContent, summary: msgContent, message_type: msgChannel, direction: msgDir });
+      const { error } = await supabase.from("message_log").insert({ client_id: id, content: msgContent, channel: msgChannel, direction: msgDir });
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["messages", id] }); setMsgContent(""); toast.success("Message logged"); },
@@ -73,7 +73,7 @@ function ClientDetail() {
   const [due, setDue] = useState(format(new Date(), "yyyy-MM-dd"));
   const addFollowUp = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("follow_up_schedule").insert({ client_id: id, title: task, due_date: due });
+      const { error } = await supabase.from("follow_up_schedule").insert({ client_id: id, task, due_date: due });
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["followups", id] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); setTask(""); toast.success("Follow-up added"); },
@@ -81,8 +81,7 @@ function ClientDetail() {
 
   const toggleFollowUp = useMutation({
     mutationFn: async (f: FollowUp) => {
-      const isCompleted = f.status === "Completed";
-      const { error } = await supabase.from("follow_up_schedule").update({ status: isCompleted ? "Pending" : "Completed", completed_at: isCompleted ? null : new Date().toISOString() }).eq("id", f.id);
+      const { error } = await supabase.from("follow_up_schedule").update({ completed: !f.completed, completed_at: f.completed ? null : new Date().toISOString() }).eq("id", f.id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["followups", id] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); },
@@ -102,10 +101,8 @@ function ClientDetail() {
       const { error } = await supabase.from("outreach_drafts").insert({
         client_id: id,
         channel: result.channel || "WhatsApp",
-        draft_text: draftText,
-        edited_text: result.edited_text || null,
+        content: draftText,
         status: result.status || "Draft",
-        prompt_context: result.prompt_context || {},
       });
       if (error) throw error;
     },
@@ -140,7 +137,7 @@ function ClientDetail() {
             <Button variant="outline" disabled={generateDraft.isPending} onClick={() => generateDraft.mutate()}>
               <Sparkles className="size-4" /> {generateDraft.isPending ? "Generating..." : "Generate Outreach Draft"}
             </Button>
-            <Button variant="outline" onClick={() => copyDraft(drafts[0]?.edited_text || drafts[0]?.draft_text)}><Copy className="size-4" /> Copy Draft</Button>
+            <Button variant="outline" onClick={() => copyDraft(drafts[0]?.content)}><Copy className="size-4" /> Copy Draft</Button>
             <Button onClick={openWhatsApp}><MessageCircle className="size-4" /> Open WhatsApp</Button>
           </>
         }
@@ -192,8 +189,8 @@ function ClientDetail() {
                     <Select value={msgDir} onValueChange={setMsgDir}>
                       <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Outbound">Outbound</SelectItem>
-                        <SelectItem value="Inbound">Inbound</SelectItem>
+                        <SelectItem value="outbound">Outbound</SelectItem>
+                        <SelectItem value="inbound">Inbound</SelectItem>
                       </SelectContent>
                     </Select>
                     <Select value={msgChannel} onValueChange={setMsgChannel}>
@@ -222,12 +219,12 @@ function ClientDetail() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex gap-2 items-center">
-                          <Badge variant={m.direction === "Inbound" ? "secondary" : "default"} className="text-xs">{m.direction}</Badge>
-                          <span className="text-xs text-muted-foreground">{m.message_type}</span>
+                          <Badge variant={m.direction === "inbound" ? "secondary" : "default"} className="text-xs">{m.direction}</Badge>
+                          <span className="text-xs text-muted-foreground">{m.channel}</span>
                         </div>
-                        <span className="text-xs text-muted-foreground">{format(parseISO(m.interaction_date), "MMM d, p")}</span>
+                        <span className="text-xs text-muted-foreground">{format(parseISO(m.sent_at), "MMM d, p")}</span>
                       </div>
-                      <p className="text-sm whitespace-pre-wrap">{m.summary || m.message}</p>
+                      <p className="text-sm whitespace-pre-wrap">{m.content}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -251,13 +248,13 @@ function ClientDetail() {
                   <Card key={f.id}>
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <input type="checkbox" checked={f.status === "Completed"} onChange={() => toggleFollowUp.mutate(f)} className="size-4" />
+                        <input type="checkbox" checked={f.completed} onChange={() => toggleFollowUp.mutate(f)} className="size-4" />
                         <div>
-                          <div className={`text-sm ${f.status === "Completed" ? "line-through text-muted-foreground" : ""}`}>{f.title}</div>
+                          <div className={`text-sm ${f.completed ? "line-through text-muted-foreground" : ""}`}>{f.task}</div>
                           <div className="text-xs text-muted-foreground">Due {format(parseISO(f.due_date), "MMM d, yyyy")}</div>
                         </div>
                       </div>
-                      {f.status === "Completed" && <Badge variant="secondary">Done</Badge>}
+                      {f.completed && <Badge variant="secondary">Done</Badge>}
                     </CardContent>
                   </Card>
                 ))}
@@ -273,8 +270,8 @@ function ClientDetail() {
                       <Badge variant="outline">{d.channel}</Badge>
                       <span className="text-xs text-muted-foreground">{format(parseISO(d.created_at), "MMM d, yyyy")}</span>
                     </div>
-                    <p className="text-sm whitespace-pre-wrap mb-2">{d.edited_text || d.draft_text}</p>
-                    <Button size="sm" variant="outline" onClick={() => copyDraft(d.edited_text || d.draft_text)}><Copy className="size-3.5" /> Copy</Button>
+                    <p className="text-sm whitespace-pre-wrap mb-2">{d.content}</p>
+                    <Button size="sm" variant="outline" onClick={() => copyDraft(d.content)}><Copy className="size-3.5" /> Copy</Button>
                   </CardContent>
                 </Card>
               ))}

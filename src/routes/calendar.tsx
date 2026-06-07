@@ -24,12 +24,12 @@ export const Route = createFileRoute("/calendar")({
 function CalendarPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ topic: "", content_date: format(new Date(), "yyyy-MM-dd"), status: "Generated", instagram_caption: "", linkedin_post: "", blog_opener: "" });
+  const [form, setForm] = useState({ title: "", scheduled_date: format(new Date(), "yyyy-MM-dd"), status: "Generated", platform: "Instagram", notes: "" });
 
   const { data = [] } = useQuery({
     queryKey: ["calendar"],
     queryFn: async () => {
-      const { data } = await supabase.from("content_calendar").select("*").order("content_date");
+      const { data } = await supabase.from("content_calendar").select("*").order("scheduled_date");
       return (data ?? []) as ContentItem[];
     },
   });
@@ -42,7 +42,7 @@ function CalendarPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["calendar"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
-      setOpen(false); setForm({ topic: "", content_date: format(new Date(), "yyyy-MM-dd"), status: "Generated", instagram_caption: "", linkedin_post: "", blog_opener: "" });
+      setOpen(false); setForm({ title: "", scheduled_date: format(new Date(), "yyyy-MM-dd"), status: "Generated", platform: "Instagram", notes: "" });
       toast.success("Post scheduled");
     },
   });
@@ -83,18 +83,17 @@ function CalendarPage() {
               <DialogContent>
                 <DialogHeader><DialogTitle>Schedule content</DialogTitle></DialogHeader>
                 <div className="space-y-3">
-                  <div><Label className="text-xs">Topic</Label><Input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></div>
-                  <div><Label className="text-xs">Date</Label><Input type="date" value={form.content_date} onChange={(e) => setForm({ ...form, content_date: e.target.value })} /></div>
+                  <div><Label className="text-xs">Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+                  <div><Label className="text-xs">Date</Label><Input type="date" value={form.scheduled_date} onChange={(e) => setForm({ ...form, scheduled_date: e.target.value })} /></div>
+                  <div><Label className="text-xs">Platform</Label><Input value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} /></div>
                   <div><Label className="text-xs">Status</Label>
                     <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>{["Generated", "Saved", "Published", "Archived"].map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
-                  <div><Label className="text-xs">Instagram caption</Label><Textarea rows={2} value={form.instagram_caption} onChange={(e) => setForm({ ...form, instagram_caption: e.target.value })} /></div>
-                  <div><Label className="text-xs">LinkedIn post</Label><Textarea rows={2} value={form.linkedin_post} onChange={(e) => setForm({ ...form, linkedin_post: e.target.value })} /></div>
-                  <div><Label className="text-xs">Blog opener</Label><Textarea rows={2} value={form.blog_opener} onChange={(e) => setForm({ ...form, blog_opener: e.target.value })} /></div>
-                  <div className="flex justify-end"><Button disabled={!form.topic} onClick={() => create.mutate()}>Schedule</Button></div>
+                  <div><Label className="text-xs">Notes</Label><Textarea rows={4} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+                  <div className="flex justify-end"><Button disabled={!form.title} onClick={() => create.mutate()}>Schedule</Button></div>
                 </div>
               </DialogContent>
             </Dialog>
@@ -113,14 +112,14 @@ function CalendarPage() {
             <Card key={p.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="font-medium">{p.topic || "Content idea"}</div>
+                  <div className="font-medium">{p.title || "Content idea"}</div>
                   <Badge variant="secondary">{p.status}</Badge>
                 </div>
                 <div className="text-xs text-muted-foreground flex gap-3">
-                  <span>Weekly content</span>
-                  <span>{format(parseISO(p.content_date), "MMM d, yyyy")}</span>
+                  <span>{p.platform || "Weekly content"}</span>
+                  <span>{format(parseISO(p.scheduled_date), "MMM d, yyyy")}</span>
                 </div>
-                {p.linkedin_post && <p className="text-sm mt-2 text-muted-foreground line-clamp-2">{p.linkedin_post}</p>}
+                {p.notes && <p className="text-sm mt-2 text-muted-foreground line-clamp-2">{p.notes}</p>}
               </CardContent>
             </Card>
           ))}
