@@ -69,17 +69,17 @@ function LoginPage() {
 
         <div className="space-y-6">
           <h1 className="text-4xl font-bold leading-tight">
-            Your AI-powered<br />business command centre
+            Everything your service<br />business needs, in one place.
           </h1>
           <p className="text-primary-foreground/80 text-lg">
-            Manage clients, generate personalised outreach drafts, track follow-ups, and plan a week of content — all from one intelligent workspace.
+            Clients, outreach, follow-ups, content — GrowthDesk brings it all together so you can focus on doing great work.
           </p>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: "Client CRM", desc: "Track every conversation" },
-              { label: "AI Outreach", desc: "WhatsApp-ready drafts" },
-              { label: "Content Calendar", desc: "7-day AI content plans" },
-              { label: "Follow-Ups", desc: "Never miss a lead" },
+              { label: "Client CRM", desc: "Full history, every conversation" },
+              { label: "AI Outreach", desc: "Personalised WhatsApp drafts" },
+              { label: "Content Calendar", desc: "A week of posts, in seconds" },
+              { label: "Follow-Ups", desc: "No lead falls through the cracks" },
             ].map((f) => (
               <div key={f.label} className="bg-white/10 rounded-lg p-3">
                 <div className="font-medium text-sm">{f.label}</div>
@@ -90,7 +90,7 @@ function LoginPage() {
         </div>
 
         <div className="text-xs text-primary-foreground/50">
-          IIT Roorkee × MASAI — Capstone Project 04
+          © 2026 GrowthDesk AI
         </div>
       </div>
 
@@ -111,8 +111,8 @@ function LoginPage() {
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
               {mode === "signin"
-                ? "Sign in to your workspace"
-                : "Start managing your business smarter"}
+                ? "Sign in to continue"
+                : "Get started with GrowthDesk"}
             </p>
           </div>
 
@@ -143,7 +143,7 @@ function LoginPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Your full name"
+                    placeholder="Full name"
                     required={mode === "signup"}
                     className="w-full pl-9 pr-4 py-2.5 border border-input rounded-md bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   />
@@ -206,21 +206,14 @@ function LoginPage() {
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            {mode === "signin" ? "Don't have an account?" : "Already have an account?"}{" "}
+            {mode === "signin" ? "New to GrowthDesk?" : "Already have an account?"}{" "}
             <button
               onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
               className="text-primary font-medium hover:underline"
             >
-              {mode === "signin" ? "Sign Up" : "Sign In"}
+              {mode === "signin" ? "Create an account" : "Sign in"}
             </button>
           </p>
-
-          {/* Demo hint */}
-          <div className="border border-dashed rounded-lg p-3 bg-muted/30 text-xs text-muted-foreground text-center space-y-1">
-            <div className="font-medium text-foreground">Demo / Grader Access</div>
-            <div>Sign up with any email to explore the platform.</div>
-            <div>Demo data is shared and visible to all users.</div>
-          </div>
         </div>
       </div>
     </div>
