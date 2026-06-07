@@ -14,7 +14,219 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          business_type: string | null
+          created_at: string
+          email: string | null
+          follow_up_date: string | null
+          id: string
+          last_contact_date: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["client_status"]
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          business_type?: string | null
+          created_at?: string
+          email?: string | null
+          follow_up_date?: string | null
+          id?: string
+          last_contact_date?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          business_type?: string | null
+          created_at?: string
+          email?: string | null
+          follow_up_date?: string | null
+          id?: string
+          last_contact_date?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      content_calendar: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          platform: string | null
+          scheduled_date: string
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          platform?: string | null
+          scheduled_date: string
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          platform?: string | null
+          scheduled_date?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      content_library: {
+        Row: {
+          body: string | null
+          content_type: string | null
+          created_at: string
+          id: string
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          body?: string | null
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: []
+      }
+      follow_up_schedule: {
+        Row: {
+          client_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          due_date: string
+          id: string
+          task: string
+        }
+        Insert: {
+          client_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          due_date: string
+          id?: string
+          task: string
+        }
+        Update: {
+          client_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string
+          id?: string
+          task?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_schedule_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_log: {
+        Row: {
+          channel: string | null
+          client_id: string
+          content: string
+          created_at: string
+          direction: string
+          id: string
+          sent_at: string
+        }
+        Insert: {
+          channel?: string | null
+          client_id: string
+          content: string
+          created_at?: string
+          direction?: string
+          id?: string
+          sent_at?: string
+        }
+        Update: {
+          channel?: string | null
+          client_id?: string
+          content?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outreach_drafts: {
+        Row: {
+          channel: string
+          client_id: string | null
+          content: string
+          created_at: string
+          id: string
+          status: string
+        }
+        Insert: {
+          channel?: string
+          client_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          channel?: string
+          client_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_drafts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +235,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      client_status: "Lead" | "Active" | "Follow-Up" | "Won" | "Lost"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +362,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      client_status: ["Lead", "Active", "Follow-Up", "Won", "Lost"],
+    },
   },
 } as const
