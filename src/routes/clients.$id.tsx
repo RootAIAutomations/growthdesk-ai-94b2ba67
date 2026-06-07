@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Sparkles, Copy, MessageCircle, Send, Plus, Mail, Phone, Briefcase } from "lucide-react";
+import { ArrowLeft, Sparkles, Copy, MessageCircle, Send, Plus, Mail, Phone, Briefcase, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { supabase, statusColor, type Client, type Message, type FollowUp, type Outreach } from "@/lib/db";
@@ -115,6 +115,19 @@ function ClientDetail() {
       toast.success("Outreach draft generated");
     },
     onError: (e: any) => toast.error(e.message || "Could not generate outreach draft"),
+  });
+
+  const deleteDraft = useMutation({
+    mutationFn: async (draftId: string) => {
+      const { error } = await supabase.from("outreach_drafts").delete().eq("id", draftId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["drafts", id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Draft deleted");
+    },
+    onError: (e: any) => toast.error(e.message || "Could not delete draft"),
   });
   const copyDraft = (text?: string) => {
     if (text) navigator.clipboard.writeText(text);
