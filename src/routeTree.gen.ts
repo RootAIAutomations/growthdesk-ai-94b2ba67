@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OutreachRouteImport } from './routes/outreach'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as FollowUpsRouteImport } from './routes/follow-ups'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientsIndexRouteImport } from './routes/clients.index'
 import { Route as ClientsIdRouteImport } from './routes/clients.$id'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OutreachRoute = OutreachRouteImport.update({
   id: '/outreach',
   path: '/outreach',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
   '/outreach': typeof OutreachRoute
+  '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
   '/clients/': typeof ClientsIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
   '/outreach': typeof OutreachRoute
+  '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
   '/clients': typeof ClientsIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/follow-ups': typeof FollowUpsRoute
   '/library': typeof LibraryRoute
   '/outreach': typeof OutreachRoute
+  '/settings': typeof SettingsRoute
   '/clients/$id': typeof ClientsIdRoute
   '/clients/': typeof ClientsIndexRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/follow-ups'
     | '/library'
     | '/outreach'
+    | '/settings'
     | '/clients/$id'
     | '/clients/'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/follow-ups'
     | '/library'
     | '/outreach'
+    | '/settings'
     | '/clients/$id'
     | '/clients'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/follow-ups'
     | '/library'
     | '/outreach'
+    | '/settings'
     | '/clients/$id'
     | '/clients/'
   fileRoutesById: FileRoutesById
@@ -117,12 +129,20 @@ export interface RootRouteChildren {
   FollowUpsRoute: typeof FollowUpsRoute
   LibraryRoute: typeof LibraryRoute
   OutreachRoute: typeof OutreachRoute
+  SettingsRoute: typeof SettingsRoute
   ClientsIdRoute: typeof ClientsIdRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/outreach': {
       id: '/outreach'
       path: '/outreach'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   FollowUpsRoute: FollowUpsRoute,
   LibraryRoute: LibraryRoute,
   OutreachRoute: OutreachRoute,
+  SettingsRoute: SettingsRoute,
   ClientsIdRoute: ClientsIdRoute,
   ClientsIndexRoute: ClientsIndexRoute,
 }
