@@ -16,11 +16,11 @@
     },
     {
       "parameters": {
-        "fromEmail": "={{ $env.SMTP_FROM_EMAIL }}",
+        "fromEmail": "={{ $json.body.senderEmail || 'noreply@growthdesk.ai' }}",
         "toEmail": "={{ $json.body.clientEmail }}",
         "subject": "={{ 'Message from ' + ($json.body.businessName || $json.body.senderName || 'GrowthDesk') }}",
         "emailType": "text",
-        "text": "={{ $json.body.draftText }}",
+        "text": "={{ $json.body.draftText + '\\n\\n---\\nSent via GrowthDesk AI' }}",
         "options": {}
       },
       "id": "send-email",
@@ -28,7 +28,7 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [460, 300],
-      "credentials": { "smtp": { "id": "smtp-creds", "name": "SMTP" } }
+      "credentials": { "smtp": { "id": "1", "name": "SMTP account" } }
     },
     {
       "parameters": {
