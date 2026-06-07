@@ -52,7 +52,7 @@ async function postWebhook<TPayload, TResponse>(url: string, payload: TPayload):
 }
 
 export async function requestOutreachDraft(payload: OutreachPayload): Promise<OutreachResponse> {
-  const webhookUrl = import.meta.env.VITE_N8N_OUTREACH_WEBHOOK_URL;
+  const webhookUrl = import.meta.env.VITE_N8N_OUTREACH_WEBHOOK_URL || "https://automation.mavops.co.uk/webhook/growthdesk-outreach";
 
   if (webhookUrl) {
     return postWebhook<OutreachPayload, OutreachResponse>(webhookUrl, payload);
@@ -76,7 +76,7 @@ export async function requestOutreachDraft(payload: OutreachPayload): Promise<Ou
 }
 
 export async function requestContentPlan(payload: ContentPayload): Promise<ContentResponse> {
-  const webhookUrl = import.meta.env.VITE_N8N_CONTENT_WEBHOOK_URL;
+  const webhookUrl = import.meta.env.VITE_N8N_CONTENT_WEBHOOK_URL || "https://automation.mavops.co.uk/webhook/growthdesk-content";
 
   if (webhookUrl) {
     return postWebhook<ContentPayload, ContentResponse>(webhookUrl, payload);
