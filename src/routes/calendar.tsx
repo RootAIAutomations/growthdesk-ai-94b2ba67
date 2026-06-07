@@ -58,7 +58,8 @@ function CalendarPage() {
         businessContext: "GrowthDesk AI helps solo service providers manage clients, follow-ups, outreach drafts, and content planning.",
       });
       if (!result.posts?.length) throw new Error("Automation did not return content posts.");
-      const { error } = await supabase.from("content_calendar").insert(result.posts);
+      const posts = result.posts.map((p) => ({ ...p, topic: p.topic ?? "Content idea" }));
+      const { error } = await supabase.from("content_calendar").insert(posts);
       if (error) throw error;
     },
     onSuccess: () => {
