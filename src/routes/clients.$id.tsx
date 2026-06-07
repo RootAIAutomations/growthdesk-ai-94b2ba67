@@ -88,7 +88,7 @@ function ClientDetail() {
   });
 
   const placeholderDraft = () => {
-    toast.info("AI generation coming in Phase 3", { description: "This will draft a personalized outreach message for this client." });
+    toast.info("AI outreach is ready to connect", { description: "Connect your automation workflow to generate personalized drafts for this client." });
   };
   const copyDraft = (text?: string) => {
     if (text) navigator.clipboard.writeText(text);

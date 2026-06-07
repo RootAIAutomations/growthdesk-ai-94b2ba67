@@ -12,32 +12,29 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   return (
     <div className="p-6 md:p-8 max-w-3xl mx-auto">
-      <PageHeader title="Settings" description="Workspace configuration and Phase status." />
+      <PageHeader title="Settings" description="Manage workspace preferences and service connections." />
 
       <div className="space-y-4">
         <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Workspace</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
             <Row label="Product" value="GrowthDesk AI" />
-            <Row label="Plan" value={<Badge>Phase 2 — MVP</Badge>} />
-            <Row label="User" value="Solo (single-tenant)" />
+            <Row label="Workspace" value={<Badge>Live workspace</Badge>} />
+            <Row label="Account type" value="Solo business" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Database className="size-4 text-info" /> Data</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Clients, follow-ups, outreach drafts, and content are stored in your connected backend.</p>
+            <p>Client records, follow-ups, outreach drafts, and content assets are stored securely in your connected backend.</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Shield className="size-4 text-warning-foreground" /> Coming next</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Shield className="size-4 text-warning-foreground" /> Automation</CardTitle></CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-1">
-            <p>• AI outreach generation</p>
-            <p>• AI content generation</p>
-            <p>• Authentication & multi-user workspaces</p>
-            <p>• WhatsApp & email integrations</p>
+            <p>AI outreach, content generation, and messaging integrations can be connected as your workflow grows.</p>
           </CardContent>
         </Card>
       </div>

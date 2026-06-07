@@ -58,7 +58,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="px-6 py-4 text-xs text-muted-foreground border-t border-sidebar-border">
-          Phase 2 — MVP
+          GrowthDesk AI
         </div>
       </aside>
 
