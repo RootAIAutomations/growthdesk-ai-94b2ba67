@@ -4,15 +4,13 @@
 
 **GrowthDesk AI** is an AI-powered CRM and business management platform for solo service providers — freelancers, consultants, coaches, and SMB owners.
 
-It solves the problem of managing clients, outreach, content, and follow-ups across 5 different apps by bringing everything into one intelligent workspace.
-
 ---
 
 ## 🔗 Live App
 
 **[Open GrowthDesk AI →](https://growthdesk-ai-94b2ba67.lovable.app)**
 
-> No login required — open in incognito to test fresh.
+> Open in incognito to test as a fresh user. Sign up → complete onboarding → explore.
 
 ---
 
@@ -20,135 +18,132 @@ It solves the problem of managing clients, outreach, content, and follow-ups acr
 
 ```
 /
-├── frontend/          ← Frontend documentation (Lovable app lives at root)
-├── backend/           ← n8n AI workflow JSONs + integration guide
+├── frontend/          ← Frontend documentation
+├── backend/           ← n8n AI workflow JSONs (import-ready)
 ├── supabase/
-│   └── migrations/    ← Database schema migrations
-├── src/               ← Application source code (Lovable/TanStack Start)
+│   └── migrations/    ← PostgreSQL schema migrations
+├── src/               ← Application source code (TanStack Start + React 19)
 │   ├── routes/        ← All pages
-│   └── lib/           ← Database + automation helpers
+│   ├── hooks/         ← Custom React hooks (auth, voice, profile)
+│   └── lib/           ← Supabase client + automation helpers
 └── README.md
 ```
 
 ---
 
-## ✅ Core Features
+## ✅ Core Features (Project 04 Requirements)
 
 | Feature | Status |
 |---------|--------|
 | Client management (add, edit, tag, status) | ✅ Live |
 | Conversation history per client | ✅ Live |
 | Follow-up tracking (overdue / today / this week) | ✅ Live |
-| AI outreach draft generation | ✅ Live (n8n + fallback) |
-| WhatsApp Web pre-filled draft link | ✅ Live |
-| AI content calendar (7-day, 3 platforms) | ✅ Live (n8n + fallback) |
+| AI outreach draft generation (personalised) | ✅ Live |
+| WhatsApp Web pre-filled draft (wa.me) | ✅ Live |
+| AI content calendar (7-day, 3 platforms) | ✅ Live |
 | Content library (save, search, filter) | ✅ Live |
-| Dashboard with live stats | ✅ Live |
+| Dashboard with live KPI stats | ✅ Live |
 
 ---
 
-## 🏗️ System Architecture
+## 🚀 Open-Ended Stretch Features (All 3 Completed)
+
+| Stretch | Implementation |
+|---------|---------------|
+| Auto-send via email | n8n SMTP → "Send Email" button on email drafts |
+| AI image generation | DALL-E 3 via n8n → Cloudinary → shown in calendar post |
+| Voice transcription → auto-draft | Web Speech API mic button in conversation + notes |
+
+### Additional Beyond Spec
+- **Multi-channel outreach** — one click generates WhatsApp + Email + LinkedIn simultaneously
+- **4-step onboarding wizard** — account creation merged with business profile setup
+- **Secure auth** — server-side `getUser()` validation, stale/deleted sessions auto-cleared
+
+---
+
+## 🏗️ Architecture
 
 ```
-Lovable Frontend (TanStack Start + React)
+Lovable Frontend (TanStack Start + React 19 + Tailwind)
           │
           ▼
-    Supabase (PostgreSQL)
+    Supabase (PostgreSQL + Auth + Row Level Security)
           │
           ▼
-        n8n
-  (AI Workflow Engine)
+     n8n (automation.mavops.co.uk)
           │
-          ▼
-   OpenAI GPT-4o-mini
+     ┌────┴────┐
+  OpenAI      DALL-E 3
+ GPT-4o-mini      │
+                Cloudinary
 ```
 
 ---
 
-## 🔄 Core Workflows
+## 🔄 AI Workflows (n8n)
 
-### Outreach Draft Workflow
-```
-Add Client + Notes → Supabase → Click "Generate Draft"
-→ n8n Webhook → OpenAI (personalised with client context)
-→ Draft saved → Copy / Open WhatsApp (wa.me prefilled)
-```
-
-### Content Calendar Workflow
-```
-Click "Generate 7-day plan" → n8n Webhook → OpenAI
-→ 7 posts × 3 formats (Instagram, LinkedIn, Blog)
-→ Saved to Content Calendar → Save to Library
-```
+| Workflow | Trigger | Output |
+|----------|---------|--------|
+| Outreach | "Generate Draft" on client | 3 drafts (WhatsApp, Email, LinkedIn) |
+| Content | "Generate 7-day plan" | 7 posts × 3 formats per post |
+| Image | "Generate Image" on post | DALL-E image → Cloudinary URL |
+| Email | "Send Email" on draft | Delivered via SMTP to client |
 
 ---
 
-## 🛠️ Technology Stack
+## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Lovable (TanStack Start + React 19 + Tailwind CSS) |
-| Database | Supabase (PostgreSQL) |
-| AI Workflow | n8n |
-| AI Model | OpenAI GPT-4o-mini |
-| Version Control | GitHub |
-| Deployment | Lovable Hosting + Supabase |
+| Layer | Tech |
+|-------|------|
+| Frontend | Lovable · TanStack Start · React 19 · Tailwind CSS · shadcn/ui |
+| Database | Supabase (PostgreSQL + Auth + RLS) |
+| AI Workflow | n8n (self-hosted) |
+| AI Model | OpenAI GPT-4o-mini + DALL-E 3 |
+| Image Storage | Cloudinary |
+| Voice Input | Browser Web Speech API |
+| Deployment | Lovable Hosting |
 
 ---
 
-## 🗄️ Database Schema
+## 🗄️ Database Tables
 
 | Table | Purpose |
 |-------|---------|
 | `clients` | Client records, tags, status, notes |
 | `message_log` | Conversation history per client |
 | `follow_up_schedule` | Follow-up tasks with due dates |
-| `outreach_drafts` | AI-generated outreach messages |
-| `content_calendar` | Weekly AI content plans |
-| `content_library` | Saved reusable content |
-
-Schema migrations: [`/supabase/migrations/`](./supabase/migrations/)
-
----
-
-## ⚙️ Environment Variables
-
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
-VITE_N8N_OUTREACH_WEBHOOK_URL=https://your-n8n/webhook/growthdesk-outreach
-VITE_N8N_CONTENT_WEBHOOK_URL=https://your-n8n/webhook/growthdesk-content
-```
-
-> The app works without n8n — it falls back to local templates automatically.
+| `outreach_drafts` | AI drafts (WhatsApp / Email / LinkedIn) |
+| `content_calendar` | AI-generated weekly content posts |
+| `content_library` | Saved reusable content pieces |
+| `profiles` | User business profile + onboarding state |
 
 ---
 
-## 🤖 n8n Workflows
+## ⚙️ Backend — n8n Workflows
 
-Import-ready workflow files are in [`/backend/`](./backend/):
+Import-ready files in [`/backend/`](./backend/):
 
-- `n8n_outreach_workflow.json` — personalised outreach draft generator
-- `n8n_content_workflow.json` — 7-day content calendar generator
+| File | Webhook Path |
+|------|-------------|
+| `n8n_outreach_workflow.json` | `/webhook/growthdesk-outreach` |
+| `n8n_content_workflow.json` | `/webhook/growthdesk-content` |
+| `n8n_email_workflow.json` | `/webhook/growthdesk-email` |
+| `n8n_image_workflow.json` | `/webhook/growthdesk-image` |
 
-See [`/backend/README.md`](./backend/README.md) for setup instructions.
+Setup guide: [`/backend/README.md`](./backend/README.md)
 
 ---
 
-## 🚀 Running Locally
+## 🚀 Run Locally
 
 ```bash
 npm install
 npm run dev
+# → http://localhost:8080
 ```
-
-Open `http://localhost:8080`
 
 ---
 
 ## 👤 Author
 
-**Vikram Hora**
-IIT Roorkee × MASAI — New Age Software Engineering (No-Code Track)
-Capstone Project 04 — Service Business Hub
-2026
+**Vikram Hora** · IIT Roorkee × MASAI · New Age Software Engineering · Capstone Project 04 · 2026

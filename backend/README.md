@@ -1,101 +1,103 @@
-# Backend — GrowthDesk AI
+# Backend — GrowthDesk AI (n8n Workflows)
 
-The backend AI layer is powered by **n8n** (self-hosted or n8n Cloud) using **OpenAI** for AI generation.
+All AI automation is handled by **n8n** using **OpenAI GPT-4o-mini** and **DALL-E 3**.
 
 ## Workflows
 
-| File | Purpose |
-|------|---------|
-| `n8n_outreach_workflow.json` | Receives client data → OpenAI → returns personalised outreach draft |
-| `n8n_content_workflow.json` | Receives week start date → OpenAI → returns 7-day content plan (Instagram + LinkedIn + Blog) |
+| File | Webhook | Purpose |
+|------|---------|---------|
+| `n8n_outreach_workflow.json` | `/webhook/growthdesk-outreach` | Generates personalised WhatsApp + Email + LinkedIn drafts |
+| `n8n_content_workflow.json` | `/webhook/growthdesk-content` | Generates 7-day content calendar (Instagram, LinkedIn, Blog) |
+| `n8n_email_workflow.json` | `/webhook/growthdesk-email` | Auto-sends email draft to client via SMTP |
+| `n8n_image_workflow.json` | `/webhook/growthdesk-image` | DALL-E 3 image → Cloudinary → returns URL |
 
 ## How to Import
 
-1. Open your n8n instance
-2. Go to **Workflows → Import from file**
-3. Import each JSON file
-4. Add your OpenAI API key in n8n credentials
-5. Activate the workflow
-6. Copy the webhook URL
-7. Paste into Lovable environment variables:
-   - `VITE_N8N_OUTREACH_WEBHOOK_URL`
-   - `VITE_N8N_CONTENT_WEBHOOK_URL`
+1. Open n8n → **Workflows → Import from file**
+2. Import each JSON file
+3. Add your **OpenAI API** credentials in n8n
+4. Add **SMTP** credentials (for email workflow)
+5. Activate each workflow
+6. The webhook URLs activate automatically at `/webhook/<path>`
 
-## Outreach Webhook — Input / Output
+## Outreach Workflow
 
-**POST** to webhook URL
-
-Input (sent by the app):
+**Input:**
 ```json
 {
-  "client": {
-    "name": "Priya Sharma",
-    "email": "priya@example.com",
-    "phone": "+919876543210",
-    "business_type": "Graphic Designer",
-    "tags": ["design", "logo"],
-    "notes": "Looking for brand identity package. Budget ₹50k.",
-    "status": "Active",
-    "last_contact_date": "2026-06-04"
-  },
-  "messages": [
-    { "message_type": "WhatsApp", "direction": "Inbound", "summary": "Client loved the proposal" }
-  ],
-  "followUps": [
-    { "title": "Send updated proposal", "due_date": "2026-06-10", "status": "Pending" }
-  ]
+  "client": { "name": "...", "business_type": "...", "notes": "...", "tags": [], "status": "Active" },
+  "messages": [{ "direction": "Inbound", "message_type": "WhatsApp", "summary": "..." }],
+  "followUps": [{ "title": "Send proposal", "due_date": "2026-06-10", "status": "Pending" }],
+  "businessContext": "User's business description from their profile"
 }
 ```
 
-Expected output:
+**Output:**
 ```json
 {
-  "draft_text": "Hi Priya! Following up on the brand identity proposal...",
-  "channel": "WhatsApp",
+  "drafts": [
+    { "channel": "WhatsApp", "draft_text": "Hi [Name]! ..." },
+    { "channel": "Email", "draft_text": "Dear [Name], ..." },
+    { "channel": "LinkedIn", "draft_text": "Hi [Name], ..." }
+  ],
   "status": "Draft"
 }
 ```
 
-## Content Webhook — Input / Output
+## Content Workflow
 
-**POST** to webhook URL
-
-Input:
+**Input:**
 ```json
-{
-  "weekStartDate": "2026-06-09",
-  "businessContext": "GrowthDesk AI helps solo service providers manage clients and content."
-}
+{ "weekStartDate": "2026-06-09", "businessContext": "..." }
 ```
 
-Expected output:
+**Output:**
 ```json
 {
   "posts": [
     {
       "content_date": "2026-06-09",
       "day_number": 1,
-      "topic": "Why solo freelancers need a CRM",
-      "instagram_caption": "Your memory is not a CRM...",
-      "linkedin_post": "After 5 years of freelancing...",
-      "blog_opener": "Most service businesses don't need more tools...",
-      "tags": ["crm", "freelancer"],
-      "status": "Generated"
+      "topic": "Why freelancers need a CRM",
+      "instagram_caption": "...",
+      "linkedin_post": "...",
+      "blog_opener": "..."
     }
   ]
 }
 ```
 
-## Database
+## Image Workflow
 
-Supabase project: `haeulonsftedrdgsxqpn`
+**Input:**
+```json
+{ "topic": "Social media automation tips", "businessContext": "..." }
+```
 
-Tables:
-- `clients` — client records
-- `message_log` — conversation history
-- `follow_up_schedule` — follow-up tasks
-- `outreach_drafts` — AI-generated outreach messages
-- `content_calendar` — weekly AI content plans
-- `content_library` — saved reusable content
+**Output:**
+```json
+{ "image_url": "https://res.cloudinary.com/..." }
+```
 
-Schema migrations are in `/supabase/migrations/`.
+## Email Workflow
+
+**Input:**
+```json
+{
+  "clientEmail": "client@example.com",
+  "clientName": "Client Name",
+  "draftText": "Email body text...",
+  "businessName": "Your Business"
+}
+```
+
+## Environment Variables (app side)
+
+```env
+VITE_N8N_OUTREACH_WEBHOOK_URL=https://your-n8n/webhook/growthdesk-outreach
+VITE_N8N_CONTENT_WEBHOOK_URL=https://your-n8n/webhook/growthdesk-content
+VITE_N8N_EMAIL_WEBHOOK_URL=https://your-n8n/webhook/growthdesk-email
+VITE_N8N_IMAGE_WEBHOOK_URL=https://your-n8n/webhook/growthdesk-image
+```
+
+> The app works without n8n — it falls back to local template generation automatically.
