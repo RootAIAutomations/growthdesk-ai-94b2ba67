@@ -61,31 +61,46 @@ export type Database = {
       }
       content_calendar: {
         Row: {
+          blog_opener: string | null
+          content_date: string
           created_at: string
+          day_number: number | null
           id: string
+          instagram_caption: string | null
+          linkedin_post: string | null
           notes: string | null
           platform: string | null
-          scheduled_date: string
           status: string
-          title: string
+          tags: string[] | null
+          topic: string
         }
         Insert: {
+          blog_opener?: string | null
+          content_date: string
           created_at?: string
+          day_number?: number | null
           id?: string
+          instagram_caption?: string | null
+          linkedin_post?: string | null
           notes?: string | null
           platform?: string | null
-          scheduled_date: string
           status?: string
-          title: string
+          tags?: string[] | null
+          topic: string
         }
         Update: {
+          blog_opener?: string | null
+          content_date?: string
           created_at?: string
+          day_number?: number | null
           id?: string
+          instagram_caption?: string | null
+          linkedin_post?: string | null
           notes?: string | null
           platform?: string | null
-          scheduled_date?: string
           status?: string
-          title?: string
+          tags?: string[] | null
+          topic?: string
         }
         Relationships: []
       }
@@ -124,7 +139,10 @@ export type Database = {
           created_at: string
           due_date: string
           id: string
-          task: string
+          notes: string | null
+          priority: string | null
+          status: string | null
+          title: string
         }
         Insert: {
           client_id: string
@@ -133,7 +151,10 @@ export type Database = {
           created_at?: string
           due_date: string
           id?: string
-          task: string
+          notes?: string | null
+          priority?: string | null
+          status?: string | null
+          title: string
         }
         Update: {
           client_id?: string
@@ -142,7 +163,10 @@ export type Database = {
           created_at?: string
           due_date?: string
           id?: string
-          task?: string
+          notes?: string | null
+          priority?: string | null
+          status?: string | null
+          title?: string
         }
         Relationships: [
           {
@@ -156,31 +180,37 @@ export type Database = {
       }
       message_log: {
         Row: {
-          channel: string | null
           client_id: string
-          content: string
           created_at: string
+          details: string | null
           direction: string
           id: string
-          sent_at: string
+          interaction_date: string
+          message: string
+          message_type: string | null
+          summary: string | null
         }
         Insert: {
-          channel?: string | null
           client_id: string
-          content: string
           created_at?: string
+          details?: string | null
           direction?: string
           id?: string
-          sent_at?: string
+          interaction_date?: string
+          message: string
+          message_type?: string | null
+          summary?: string | null
         }
         Update: {
-          channel?: string | null
           client_id?: string
-          content?: string
           created_at?: string
+          details?: string | null
           direction?: string
           id?: string
-          sent_at?: string
+          interaction_date?: string
+          message?: string
+          message_type?: string | null
+          summary?: string | null
         }
         Relationships: [
           {
@@ -196,25 +226,31 @@ export type Database = {
         Row: {
           channel: string
           client_id: string | null
-          content: string
-          created_at: string
+          draft_text: string
+          edited_text: string | null
+          generated_at: string
           id: string
+          prompt_context: Json | null
           status: string
         }
         Insert: {
           channel?: string
           client_id?: string | null
-          content: string
-          created_at?: string
+          draft_text: string
+          edited_text?: string | null
+          generated_at?: string
           id?: string
+          prompt_context?: Json | null
           status?: string
         }
         Update: {
           channel?: string
           client_id?: string | null
-          content?: string
-          created_at?: string
+          draft_text?: string
+          edited_text?: string | null
+          generated_at?: string
           id?: string
+          prompt_context?: Json | null
           status?: string
         }
         Relationships: [
