@@ -21,7 +21,7 @@ export const Route = createFileRoute("/library")({
 function LibraryPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", content_type: "Instagram", body: "", tags: "" });
+  const [form, setForm] = useState({ title: "", platform: "Instagram", content: "", tags: "" });
 
   const { data = [] } = useQuery({
     queryKey: ["library"],
@@ -34,14 +34,14 @@ function LibraryPage() {
   const create = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("content_library").insert({
-        title: form.title, content_type: form.content_type, body: form.body,
+        title: form.title, platform: form.platform, content: form.content,
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       });
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["library"] });
-      setOpen(false); setForm({ title: "", content_type: "Instagram", body: "", tags: "" });
+      setOpen(false); setForm({ title: "", platform: "Instagram", content: "", tags: "" });
       toast.success("Saved to library");
     },
   });
@@ -58,8 +58,8 @@ function LibraryPage() {
               <DialogHeader><DialogTitle>New library item</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 <div><Label className="text-xs">Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-                <div><Label className="text-xs">Type</Label><Input value={form.content_type} onChange={(e) => setForm({ ...form, content_type: e.target.value })} /></div>
-                <div><Label className="text-xs">Content</Label><Textarea rows={6} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
+                <div><Label className="text-xs">Platform</Label><Input value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} /></div>
+                <div><Label className="text-xs">Content</Label><Textarea rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} /></div>
                 <div><Label className="text-xs">Tags (comma-separated)</Label><Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} /></div>
                 <div className="flex justify-end"><Button disabled={!form.title} onClick={() => create.mutate()}>Save</Button></div>
               </div>
@@ -80,14 +80,14 @@ function LibraryPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="font-medium">{it.title}</div>
-                  {it.content_type && <Badge variant="secondary">{it.content_type}</Badge>}
+                  {it.platform && <Badge variant="secondary">{it.platform}</Badge>}
                 </div>
-                <p className="text-sm whitespace-pre-wrap text-muted-foreground line-clamp-4 mb-2">{it.body}</p>
+                <p className="text-sm whitespace-pre-wrap text-muted-foreground line-clamp-4 mb-2">{it.content}</p>
                 <div className="flex flex-wrap gap-1 mb-2">
                   {(it.tags ?? []).map((t) => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}
                 </div>
-                {it.body && (
-                  <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(it.body!); toast.success("Copied"); }}>
+                {it.content && (
+                  <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(it.content!); toast.success("Copied"); }}>
                     <Copy className="size-3.5" /> Copy
                   </Button>
                 )}
