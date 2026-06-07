@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, CalendarDays, Sparkles, Copy, BookmarkPlus, Instagram, Linkedin, FileText } from "lucide-react";
+import { Plus, CalendarDays, Sparkles, Copy, BookmarkPlus, Instagram, Linkedin, FileText, Trash2 } from "lucide-react";
 import { format, parseISO, startOfWeek } from "date-fns";
 import { toast } from "sonner";
 import { supabase, type ContentItem } from "@/lib/db";
@@ -87,6 +87,20 @@ function CalendarPage() {
       toast.success(`Saved ${vars.platform} post to library`);
     },
     onError: (e: any) => toast.error(e.message || "Could not save to library"),
+  });
+
+  const deletePost = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("content_calendar").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["calendar"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      setSelected(null);
+      toast.success("Post deleted");
+    },
+    onError: (e: any) => toast.error(e.message || "Could not delete post"),
   });
 
   const statusColor: Record<string, string> = {
@@ -182,9 +196,22 @@ function CalendarPage() {
             <>
               <DialogHeader>
                 <DialogTitle className="pr-8">{selected.topic || "Content idea"}</DialogTitle>
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="text-sm text-muted-foreground">{format(parseISO(selected.content_date), "EEEE, MMMM d yyyy")}</span>
-                  <Badge variant="outline" className={`text-xs ${statusColor[selected.status] ?? ""}`}>{selected.status}</Badge>
+                <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">{format(parseISO(selected.content_date), "EEEE, MMMM d yyyy")}</span>
+                    <Badge variant="outline" className={`text-xs ${statusColor[selected.status] ?? ""}`}>{selected.status}</Badge>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                    disabled={deletePost.isPending}
+                    onClick={() => {
+                      if (confirm("Delete this post? This cannot be undone.")) deletePost.mutate(selected.id);
+                    }}
+                  >
+                    <Trash2 className="size-3.5" /> Delete
+                  </Button>
                 </div>
               </DialogHeader>
 
