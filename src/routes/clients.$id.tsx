@@ -53,7 +53,7 @@ function ClientDetail() {
   const { data: drafts = [] } = useQuery({
     queryKey: ["drafts", id],
     queryFn: async () => {
-      const { data } = await supabase.from("outreach_drafts").select("*").eq("client_id", id).order("created_at", { ascending: false });
+      const { data } = await supabase.from("outreach_drafts").select("*").eq("client_id", id).order("generated_at", { ascending: false });
       return (data ?? []) as Outreach[];
     },
   });
@@ -105,7 +105,7 @@ function ClientDetail() {
         draft_text: draftText,
         edited_text: result.edited_text || null,
         status: result.status || "Draft",
-        prompt_context: result.prompt_context || {},
+        prompt_context: (result.prompt_context || null) as any,
       });
       if (error) throw error;
     },
@@ -120,10 +120,12 @@ function ClientDetail() {
     if (text) navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   };
-  const openWhatsApp = () => {
+  const openWhatsApp = (draftText?: string) => {
     if (!client?.phone) return toast.error("No phone number on file");
     const phone = client.phone.replace(/\D/g, "");
-    window.open(`https://wa.me/${phone}`, "_blank");
+    const text = draftText || drafts[0]?.edited_text || drafts[0]?.draft_text;
+    const query = text ? `?text=${encodeURIComponent(text)}` : "";
+    window.open(`https://wa.me/${phone}${query}`, "_blank");
   };
 
   if (!client) return <div className="p-8 text-muted-foreground">Loading…</div>;
@@ -141,7 +143,7 @@ function ClientDetail() {
               <Sparkles className="size-4" /> {generateDraft.isPending ? "Generating..." : "Generate Outreach Draft"}
             </Button>
             <Button variant="outline" onClick={() => copyDraft(drafts[0]?.edited_text || drafts[0]?.draft_text)}><Copy className="size-4" /> Copy Draft</Button>
-            <Button onClick={openWhatsApp}><MessageCircle className="size-4" /> Open WhatsApp</Button>
+            <Button onClick={() => openWhatsApp()}><MessageCircle className="size-4" /> Open WhatsApp</Button>
           </>
         }
       />
@@ -271,10 +273,17 @@ function ClientDetail() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <Badge variant="outline">{d.channel}</Badge>
-                      <span className="text-xs text-muted-foreground">{format(parseISO(d.created_at), "MMM d, yyyy")}</span>
+                      <span className="text-xs text-muted-foreground">{format(parseISO(d.generated_at), "MMM d, yyyy")}</span>
                     </div>
-                    <p className="text-sm whitespace-pre-wrap mb-2">{d.edited_text || d.draft_text}</p>
-                    <Button size="sm" variant="outline" onClick={() => copyDraft(d.edited_text || d.draft_text)}><Copy className="size-3.5" /> Copy</Button>
+                    <div className="bg-muted/40 rounded-lg p-3 text-sm whitespace-pre-wrap mb-3 leading-relaxed">{d.edited_text || d.draft_text}</div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => copyDraft(d.edited_text || d.draft_text)}><Copy className="size-3.5" /> Copy</Button>
+                      {d.channel === "WhatsApp" && (
+                        <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-500/30 hover:bg-emerald-50" onClick={() => openWhatsApp(d.edited_text || d.draft_text)}>
+                          <MessageCircle className="size-3.5" /> Open in WhatsApp
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}

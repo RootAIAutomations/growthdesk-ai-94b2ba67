@@ -19,8 +19,8 @@ function Dashboard() {
       const [clients, followUps, drafts, content] = await Promise.all([
         supabase.from("clients").select("*").order("updated_at", { ascending: false }),
         supabase.from("follow_up_schedule").select("*, clients(name)").neq("status", "Completed").order("due_date"),
-        supabase.from("outreach_drafts").select("*, clients(name)").order("created_at", { ascending: false }),
-        supabase.from("content_calendar").select("*").order("created_at", { ascending: false }),
+        supabase.from("outreach_drafts").select("*, clients(name)").order("generated_at", { ascending: false }),
+        supabase.from("content_calendar").select("*").order("generated_at", { ascending: false }),
       ]);
       return {
         clients: (clients.data ?? []) as Client[],
@@ -48,11 +48,20 @@ function Dashboard() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
       <PageHeader title="Dashboard" description="Your CRM overview at a glance." />
 
+      {/* Clickable stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Stat icon={Users} label="Total clients" value={data?.clients.length ?? 0} accent="text-primary" />
-        <Stat icon={CalendarClock} label="Follow-ups due" value={followUpsDue} accent="text-warning-foreground" />
-        <Stat icon={MessageSquareText} label="Outreach drafts" value={data?.drafts.length ?? 0} accent="text-info" />
-        <Stat icon={CalendarDays} label="Content posts" value={data?.content.length ?? 0} accent="text-success" />
+        <Link to="/clients">
+          <Stat icon={Users} label="Total clients" value={data?.clients.length ?? 0} accent="text-primary" />
+        </Link>
+        <Link to="/follow-ups">
+          <Stat icon={CalendarClock} label="Follow-ups due" value={followUpsDue} accent="text-warning-foreground" />
+        </Link>
+        <Link to="/outreach">
+          <Stat icon={MessageSquareText} label="Outreach drafts" value={data?.drafts.length ?? 0} accent="text-info" />
+        </Link>
+        <Link to="/calendar">
+          <Stat icon={CalendarDays} label="Content posts" value={data?.content.length ?? 0} accent="text-success" />
+        </Link>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -123,13 +132,13 @@ function Dashboard() {
           <CardContent className="space-y-2">
             {(data?.content ?? []).length === 0 && <Empty>No content scheduled yet.</Empty>}
             {(data?.content ?? []).slice(0, 5).map((c) => (
-              <div key={c.id} className="flex items-center justify-between p-3 rounded-md border">
+              <Link key={c.id} to="/calendar" className="flex items-center justify-between p-3 rounded-md border hover:bg-accent/40 transition">
                 <div>
                   <div className="font-medium text-sm">{c.topic || "Content idea"}</div>
                   <div className="text-xs text-muted-foreground">Weekly content</div>
                 </div>
                 <div className="text-xs text-muted-foreground">{format(parseISO(c.content_date), "MMM d")}</div>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>
@@ -140,7 +149,7 @@ function Dashboard() {
 
 function Stat({ icon: Icon, label, value, accent }: { icon: any; label: string; value: number; accent: string }) {
   return (
-    <Card>
+    <Card className="hover:shadow-md hover:border-primary/30 transition-all cursor-pointer">
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div>
